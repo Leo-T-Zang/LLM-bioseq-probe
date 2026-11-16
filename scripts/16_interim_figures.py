@@ -37,7 +37,7 @@ forest(ax, labels, c.D_points, c.D_ci_low, c.D_ci_high, c.model.eq("claude-opus-
 ax.axvline(10, color=MUTED, lw=1, ls="--")
 ax.text(10.3, -0.45, "pre-registered bar:\nCI lower bound > 10", fontsize=8, color=MUTED, va="bottom")
 ax.set_xlabel("Next amino acid: real minus shuffled accuracy (percentage points), 95% CI over families")
-ax.set_title("PROTEIN, confirmation run (interim): bacterial/archaeal DUF proteins, no 90% relative,\n"
+ax.set_title(f"PROTEIN, confirmation run ({'final' if (c.families == 167).all() else 'interim'}): bacterial/archaeal DUF proteins, no 90% relative,\n"
              "cuts inside the Pfam domain", loc="left", fontsize=10, fontweight="bold")
 fig.tight_layout()
 fig.savefig("results/interim_confirmation.png", dpi=150, bbox_inches="tight")
