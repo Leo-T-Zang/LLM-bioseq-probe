@@ -22,7 +22,8 @@ def prompt(prefix: str) -> str:
 
 
 def parse(text: str) -> str:
-    letters = re.sub(r"[^A-Za-z]", "", text.strip().splitlines()[-1] if text.strip() else "").upper()
+    text = re.sub(r"<[^>]*>", "", text).strip()  # stray markup such as <br>
+    letters = re.sub(r"[^A-Za-z]", "", text.splitlines()[-1] if text else "").upper()
     return letters if set(letters) <= set(STANDARD) else ""
 
 

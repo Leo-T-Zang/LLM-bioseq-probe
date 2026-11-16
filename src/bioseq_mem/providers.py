@@ -27,8 +27,8 @@ MODELS: dict[str, tuple[str, dict]] = {
     "claude-opus-5": ("anthropic", {"thinking": {"type": "disabled"}, "output_config": {"effort": "low"}}),
     "claude-opus-5-5": ("anthropic", {"output_config": {"effort": "low"}}),
     "gemini-2.5-pro": ("gemini", {"thinking_config": {"thinking_budget": 128}}),
-    "gemini-3.5-flash": ("gemini", {"thinking_config": {"thinking_level": "low"}}),
-    "gemini-3.8-flash": ("gemini", {"thinking_config": {"thinking_level": "low"}}),
+    "gemini-3.5-flash": ("gemini", {"thinking_config": {"thinking_level": "minimal"}}),
+    "gemini-3.8-flash": ("gemini", {"thinking_config": {"thinking_budget": 0}}),  # "minimal" unsupported; still thinks ~550 tokens
     "gemini-4-carbon": ("gemini", {"thinking_config": {"thinking_level": "low"}}),
 }
 
