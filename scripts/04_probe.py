@@ -25,9 +25,11 @@ ap.add_argument("--models", default=",".join(MODELS))
 ap.add_argument("--limit", type=int, default=None, help="first N probes only")
 ap.add_argument("--workers", type=int, default=8)
 ap.add_argument("--run", action="store_true", help="make paid API calls")
+ap.add_argument("--sequences", default="data/sequences_pilot.tsv")
+ap.add_argument("--out", default="results/probe")
 args = ap.parse_args()
 
-seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t")
+seqs = pd.read_csv(args.sequences, sep="\t")
 probes = [
     {"accession": r.accession, "pfam": r.pfam, "condition": cond, "cut": int(c), "prefix": s[: int(c)], "target": s[int(c) : int(c) + K]}
     for r in seqs.itertuples()
@@ -42,7 +44,7 @@ if not args.run:
     print("dry run; pass --run to call:", args.models)
     raise SystemExit
 
-out_dir = Path("results/probe")
+out_dir = Path(args.out)
 out_dir.mkdir(parents=True, exist_ok=True)
 for model in args.models.split(","):
     path = out_dir / f"{model}.jsonl"

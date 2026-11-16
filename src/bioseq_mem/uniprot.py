@@ -47,3 +47,14 @@ def europepmc_hits(query: str) -> int:
         {"query": query, "format": "json", "pageSize": 1},
     )
     return int(r.json()["hitCount"])
+
+
+def uniref90_singletons(accessions: list[str]) -> set[str]:
+    """The accessions that are alone in their UniRef90 cluster (no other sequence at >= 90% identity)."""
+    out = set()
+    for i in range(0, len(accessions), 50):
+        q = " OR ".join(f"uniprot_id:{a}" for a in accessions[i : i + 50])
+        for r in search(f"({q}) AND identity:0.9", "id,count", size=100, db="uniref"):
+            if r["memberCount"] == 1:
+                out.add(r["id"].removeprefix("UniRef90_"))
+    return out
