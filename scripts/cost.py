@@ -14,7 +14,10 @@ PRICE = {
     "gpt-5.5": (5, 30), "gpt-6.1-sol": (2, 10), "gpt-6-astra": (10, 50),
     "gemini-2.5-pro": (1.25, 10), "gemini-3.5-flash": (1, 6), "gemini-3.8-flash": (1, 6), "gemini-4-carbon": (5, 30),  # flash/4 ASSUMED
 }
-FIREWORKS = (3, 12)  # ASSUMED for every open-weight model on Fireworks, set high
+PRICE.update({  # Fireworks serverless, fireworks.ai/pricing (2026-11-16); Qwen 3.8 2.4T priced as Qwen 3.8 Max
+    "kimi-k3p1-pro": (2, 10), "glm-5p3": (1.4, 4.4), "qwen3p8-2p4t-a95b": (2, 6), "deepseek-v4p1-flash": (0.3, 1.2),
+    "minimax-m3": (0.3, 1.2), "gpt-oss-120b": (0.15, 0.6), "nemotron-3-ultra-nvfp4": (0.6, 2.4),
+})
 FULL = 2220  # probes per model in the pilot run
 
 
@@ -25,10 +28,10 @@ def tokens(u: dict) -> tuple[int, int]:
 
 
 total_now = total_full = 0.0
-for p in sorted(p for d in ("results/probe", "results/confirm", "results/dna") for p in Path(d).glob("*.jsonl")):
+for p in sorted(p for d in ("results/probe", "results/probe_guess", "results/confirm", "results/dna") for p in Path(d).glob("*.jsonl")):
     recs = [json.loads(line) for line in p.open()]
     t = [tokens(r.get("usage") or {}) for r in recs]
-    pi, po = PRICE.get(p.stem, FIREWORKS)
+    pi, po = PRICE[p.stem]
     spent = sum(a * pi + b * po for a, b in t) / 1e6
     per = spent / len(recs)
     total_now += spent
