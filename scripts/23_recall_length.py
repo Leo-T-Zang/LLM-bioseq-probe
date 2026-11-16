@@ -1,8 +1,9 @@
-"""How far can a model recite a protein letter for letter? -> results/recall_length.jsonl
+"""How far can a model recite a protein letter for letter? -> results/recall_length/<model>.jsonl
 
 Common case set: every pilot cut (real sequence) that any model continued with all 10 residues
 right, the 10 not present in the prefix. Every model gets the same cases and is asked for the
 next 200 residues; the score is the exact run against the true sequence.
+One output file per model: results/recall_length/<model>.jsonl.
 
     uv run python scripts/23_recall_length.py claude-opus-5-5,gemini-4-carbon --run
 """
@@ -20,7 +21,7 @@ from bioseq_mem.providers import call
 
 N_AA = 200
 STANDARD = "ACDEFGHIKLMNPQRSTVWY"
-OUT = Path("results/recall_length.jsonl")
+OUT_DIR = Path("results/recall_length")
 
 
 def prompt(prefix: str) -> str:
@@ -41,9 +42,11 @@ print(len(cases), "common cases")
 if "--run" not in sys.argv:
     raise SystemExit("dry run; pass --run")
 
-done = {(r["model"], r["id"]) for r in map(json.loads, OUT.open())} if OUT.exists() else set()
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 for model in sys.argv[1].split(","):
-    todo = [c for c in cases if (model, c["id"]) not in done]
+    out = OUT_DIR / f"{model}.jsonl"
+    done = {r["id"] for r in map(json.loads, out.open())} if out.exists() else set()
+    todo = [c for c in cases if c["id"] not in done]
 
     def one(c, model=model):
         try:
@@ -56,7 +59,7 @@ for model in sys.argv[1].split(","):
             run += 1
         return {"model": model, "id": c["id"], "truth_available": len(c["truth"]), "written": len(pred), "exact_run": run, "text": text[:2000]}
 
-    with ThreadPoolExecutor(24) as pool, OUT.open("a") as f:
+    with ThreadPoolExecutor(24) as pool, out.open("a") as f:
         for r in pool.map(one, todo):
             f.write(json.dumps(r) + "\n")
     print(model, "done", flush=True)
