@@ -31,6 +31,14 @@ MODELS: dict[str, tuple[str, dict]] = {
     "gemini-3.5-flash": ("gemini", {"thinking_config": {"thinking_level": "minimal"}}),
     "gemini-3.8-flash": ("gemini", {"thinking_config": {"thinking_budget": 0}}),  # "minimal" unsupported; still thinks ~550 tokens
     "gemini-4-carbon": ("gemini", {"thinking_config": {"thinking_level": "low"}}),
+    # Open-weight models served by Fireworks (OpenAI-compatible); settings from smoke tests.
+    "deepseek-v4p1-flash": ("fireworks", {"reasoning_effort": "none"}),
+    "qwen3p8-2p4t-a95b": ("fireworks", {"reasoning_effort": "none"}),
+    "kimi-k3p1-pro": ("fireworks", {"reasoning_effort": "none"}),
+    "glm-5p3": ("fireworks", {"reasoning_effort": "low"}),  # thinking-only; lowest
+    "minimax-m3": ("fireworks", {"reasoning_effort": "none"}),
+    "gpt-oss-120b": ("fireworks", {"reasoning_effort": "low"}),  # thinking-only; lowest
+    "nemotron-3-ultra-nvfp4": ("fireworks", {"reasoning_effort": "none"}),
 }
 
 
@@ -75,6 +83,19 @@ def _openai_responses(model, prompt, max_tokens, cfg):
     return Reply(r.output_text or "", r.status, usage=r.usage.model_dump() if r.usage else {})
 
 
+def _fireworks(model, prompt, max_tokens, cfg):
+    client = openai.OpenAI(base_url="https://api.fireworks.ai/inference/v1", api_key=os.environ["FIREWORKS_API_KEY"])
+    r = client.chat.completions.create(
+        model=f"accounts/fireworks/models/{model}",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+        max_tokens=max_tokens,
+        **cfg,
+    )
+    c = r.choices[0]
+    return Reply(c.message.content or "", c.finish_reason, usage=r.usage.model_dump() if r.usage else {})
+
+
 def _gemini(model, prompt, max_tokens, cfg):
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options=types.HttpOptions(api_version="v1beta"))
     conf = types.GenerateContentConfig(
@@ -91,4 +112,5 @@ _CALLS = {
     "openai_chat": _openai_chat,
     "openai_responses": _openai_responses,
     "gemini": _gemini,
+    "fireworks": _fireworks,
 }

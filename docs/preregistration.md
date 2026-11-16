@@ -60,3 +60,11 @@ Accuracy by UniParc first-seen year; exact-run lengths; refusal rates.
 - Batched UniRef90 singleton lookup (same criterion, fewer API calls).
 - Protein language models (ProGen2, ESM-2), run locally on the same probes, are a
   reference level only; they do not change any test or verdict.
+
+## Amendment 2 (2026-11-16, before any confirmation model call)
+
+- gpt-6-astra joins the confirmation run at the user's request, without the pilot gate.
+- Open-weight models on Fireworks (DeepSeek V4.1 Flash, Qwen3.8 2.4T, Kimi K3.1 Pro,
+  GLM-5.3, MiniMax M3, gpt-oss-120b, Nemotron 3 Ultra) run on the pilot set as
+  exploratory comparisons; thinking off where the model allows, else lowest effort.
+- Protein language model reference dropped.
