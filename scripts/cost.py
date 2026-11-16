@@ -11,7 +11,7 @@ from pathlib import Path
 PRICE = {
     "claude-opus-5-5": (4, 20), "claude-opus-5": (5, 25), "claude-opus-4-6": (5, 25), "claude-sonnet-4-5-20250929": (3, 15),
     "gpt-4o-2024-11-20": (2.5, 10), "gpt-4.1-2025-04-14": (2, 8),
-    "gpt-5.5": (5, 30), "gpt-6.1-sol": (2, 10),
+    "gpt-5.5": (5, 30), "gpt-6.1-sol": (2, 10), "gpt-6-astra": (10, 50),
     "gemini-2.5-pro": (1.25, 10), "gemini-3.5-flash": (1, 6), "gemini-3.8-flash": (1, 6), "gemini-4-carbon": (5, 30),  # flash/4 ASSUMED
 }
 FULL = 2220  # probes per model in the full run

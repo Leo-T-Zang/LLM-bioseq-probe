@@ -51,3 +51,12 @@ three are reported whatever they show, for every model listed.
 ## Exploratory (not part of the verdict)
 
 Accuracy by UniParc first-seen year; exact-run lengths; refusal rates.
+
+## Amendment 1 (2026-11-16, before any confirmation model call)
+
+- Add gpt-6-astra (reasoning effort low, its lowest; $10/$50 per 1M tokens) as a
+  comparison model. It first runs on the pilot set; it joins the confirmation run
+  only if its pilot real-minus-shuffled gain on DUF families exceeds 5 points.
+- Batched UniRef90 singleton lookup (same criterion, fewer API calls).
+- Protein language models (ProGen2, ESM-2), run locally on the same probes, are a
+  reference level only; they do not change any test or verdict.
