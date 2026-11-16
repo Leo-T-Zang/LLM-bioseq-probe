@@ -7,17 +7,19 @@ residue right after the cut: the most likely of the 20 standard residues.
 
   prefix  only the residues before the cut: the same information the LLMs get. ESM-2 and ESM C are
           masked (bidirectional) models, so they see the prefix, a mask and the end-of-sequence token;
-          ProtGPT2 is autoregressive and predicts the next token (a residue's probability = the summed
-          probability of the BPE tokens that start with it).
+          ProtGPT2 and ProtGPT3 are autoregressive and predict the next token (ProtGPT3: one token per
+          residue; ProtGPT2: a residue's probability = the summed probability of the BPE tokens that
+          start with it).
   full    the whole sequence with that one residue masked (ESM-2 and ESM C only): more information
           than the LLMs get, an upper bound for these models.
 
 Masking is done on token ids: the ESM SDK's "_" maps to a non-mask token in ESM C.
 Sanity checks (full context, every residue masked in turn): ESM-2 650M ubiquitin 80%, hemoglobin
-beta 62%, lysozyme 82%; ESM C 600M ubiquitin 100%, hemoglobin beta 80%; ESM3-open 1.4B ubiquitin 100%, hemoglobin beta 82%. ProtGPT2, next
-residue from the left only: ubiquitin 65%, hemoglobin beta 37%.
+beta 62%, lysozyme 82%; ESM C 600M ubiquitin 100%, hemoglobin beta 80%; ESM3-open 1.4B ubiquitin 100%, hemoglobin beta 82%. Next residue from the
+left only (printed by every run): ProtGPT2 ubiquitin 65%, hemoglobin beta 37%; ProtGPT3-1.3B 98%,
+33%; ProtGPT3-10B 100%, 84%.
 
-    .venv-plm/bin/python scripts/probe/protein_lm.py esm2-650M:prefix,esm2-650M:full,esmc-600m:prefix,esmc-600m:full,esm3-open:prefix,esm3-open:full,protgpt2:prefix
+    .venv-plm/bin/python scripts/probe/protein_lm.py esm2-650M:prefix,esm2-650M:full,esmc-600m:prefix,esmc-600m:full,esm3-open:prefix,esm3-open:full,protgpt2:prefix,protgpt3-1.3B:prefix,protgpt3-10B:prefix
 """
 
 import json
@@ -89,6 +91,22 @@ def esm3():
     return logp
 
 
+def protgpt3(size: str):
+    """Autoregressive, one token per residue; "1" marks N-to-C reading. No custom code."""
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    name = f"AI4PD/ProtGPT3-{size}"
+    tok = AutoTokenizer.from_pretrained(name)
+    model = AutoModelForCausalLM.from_pretrained(name, torch_dtype=torch.bfloat16).to(DEVICE).eval()
+    ids = tok.convert_tokens_to_ids(list(AA))
+
+    def logp(seq: str, cut: int, mode: str):
+        x = torch.tensor([[tok.bos_token_id] + tok("1" + seq[:cut]).input_ids], device=DEVICE)
+        return torch.log_softmax(model(input_ids=x).logits[0, -1, ids].float().cpu(), -1)
+
+    return logp
+
+
 def protgpt2():
     from transformers import AutoTokenizer, GPT2LMHeadModel
 
@@ -106,7 +124,19 @@ def protgpt2():
     return logp
 
 
-LOADERS = {"esm2-650M": esm2, "esmc-600m": esmc, "esm3-open": esm3, "protgpt2": protgpt2}
+LOADERS = {"esm2-650M": esm2, "esmc-600m": esmc, "esm3-open": esm3, "protgpt2": protgpt2,
+           "protgpt3-1.3B": lambda: protgpt3("1.3B"), "protgpt3-10B": lambda: protgpt3("10B")}
+SANITY = {"ubiquitin": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
+          "hemoglobin beta": "MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"}
+
+
+def sanity(logp_fn, mode: str) -> str:
+    """Next-residue accuracy on two well-known proteins, every cut from residue 10."""
+    out = []
+    for k, s in SANITY.items():
+        hit = sum(AA[int(logp_fn(s, c, mode).argmax())] == s[c] for c in range(10, len(s)))
+        out.append(f"{k} {hit}/{len(s) - 10} = {hit / (len(s) - 10):.0%}")
+    return "; ".join(out)
 
 
 
@@ -116,6 +146,8 @@ def main(spec: str):
     runs = [r.split(":") for r in spec.split(",")]
     for mname in dict.fromkeys(m for m, _ in runs):
         logp_fn = LOADERS[mname]()
+        for mode in [md for m, md in runs if m == mname]:
+            print(mname, mode, "sanity:", sanity(logp_fn, mode), flush=True)
         for mode in [md for m, md in runs if m == mname]:
             path = OUT / f"{mname}__{mode}.jsonl"
             done = {(d["accession"], d["cut"], d["condition"]) for d in map(json.loads, path.open())} if path.exists() else set()

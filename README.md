@@ -36,9 +36,9 @@ Give a model the start of a protein and ask for the next amino acids.
 - The Opus 5.5 gap grows with family size (Spearman 0.27, p = 0.0002), including in the
   128 families with zero papers, and appears in 95% of families
   ([figure](figures/fig5_family_size.png)).
-- Given the same input (the residues before the cut), protein language models score lower:
-  ESM C 600M +13.0, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0. ESM-2 given the whole
-  protein reaches +34.6.
+- Given the same input (the residues before the cut), Opus 5.5 matches ProtGPT3-10B (+27.7), the
+  newest and largest open left-to-right protein language model, and scores well above smaller
+  ones: ESM C 600M +13.0, ProtGPT3-1.3B +11.6, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0.
 - It is not test-time reasoning (same accuracy when Opus 5.5 writes 15 tokens or fewer)
   and not the prompt format (copy-then-continue gives the same result).
 - **DNA:** Opus 5.5 predicts human and mouse coding sequence (25 exact 20-nucleotide

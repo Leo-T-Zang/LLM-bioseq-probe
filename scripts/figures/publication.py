@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from bioseq_probe.figstyle import ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, color, header, save
+from bioseq_probe.figstyle import ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, PROTEIN_LM, color, header, save
 
 LABEL = {"claude-opus-4-5-20251101": "Claude Opus 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-7": "Claude Opus 4.7", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
          "claude-opus-5-5": "Claude Opus 5.5", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
@@ -26,7 +26,8 @@ def forest(ax, rows, y_of, xlabel):
     for r in rows:
         y, c = y_of[r["name"]], color(r["name"])
         ax.plot([r["lo"], r["hi"]], [y, y], color=c, lw=1.4, solid_capstyle="round", zorder=2)
-        ax.plot(r["d"], y, "o", ms=4.2, color=c, mfc="white" if r["raw"] else c, mec=c, mew=1.0, zorder=3)
+        mk, ms = ("D", 3.8) if r.get("plm") else ("o", 4.2)
+        ax.plot(r["d"], y, mk, ms=ms, color=c, mfc="white" if r["raw"] else c, mec=c, mew=1.0, zorder=3)
         ax.text(max(r["hi"], 0) + 0.8, y, f"{r['d']:+.1f}", va="center", fontsize=6.3,
                 color=INK if r["name"] == "Claude Opus 5.5" else MUTED, fontweight="bold" if r["name"] == "Claude Opus 5.5" else "normal")
     ax.axvline(0, color=MUTED, lw=0.6, zorder=1)
@@ -36,12 +37,14 @@ def forest(ax, rows, y_of, xlabel):
 # Fig 1: every model on the obscure proteins ---------------------------------------------------
 c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")
 raw = pd.read_csv("results/raw_summary.tsv", sep="\t")
+plm = pd.read_csv("results/plm_summary.tsv", sep="\t").query("mode == 'prefix'").set_index("model")
 groups = [
     ("Anthropic", [("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
                    ("claude-opus-4-6", "chat"), ("claude-opus-4-5-20251101", "chat")]),
     ("OpenAI", [("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
     ("Google", [("gemini-4-carbon", "chat"), ("Gemini 2.5 Pro (raw)", "raw")]),
     ("Open-weight", [(n, "raw") for n in raw.name if n.endswith("(raw)") and not n.startswith(("Gemini", "Claude"))]),
+    ("Protein language models", [("protgpt3-10B", "plm"), ("protgpt3-1.3B", "plm")]),
 ]
 rows, y_of, ticks, y = [], {}, [], 0.0
 for g, members in groups:
@@ -52,6 +55,10 @@ for g, members in groups:
             r = c.loc[key]
             name = LABEL[key]
             rows.append({"name": name, "d": r.D_points, "lo": r.D_ci_low, "hi": r.D_ci_high, "raw": False})
+        elif how == "plm":
+            r = plm.loc[key]
+            name = r["name"]
+            rows.append({"name": name, "d": r.d, "lo": r.lo, "hi": r.hi, "raw": False, "plm": True})
         else:
             r = raw[raw.name == key].iloc[0]
             name = key.replace(" (raw)", "")
@@ -59,7 +66,7 @@ for g, members in groups:
         y_of[name] = y
         y -= 1
     y -= 0.35
-fig, ax = plt.subplots(figsize=(4.6, 4.75))
+fig, ax = plt.subplots(figsize=(4.6, 5.2))
 forest(ax, rows, y_of, "Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.set_yticks(list(y_of.values()), list(y_of.keys()))
 for t, m in zip(ax.get_yticklabels(), y_of):
@@ -69,9 +76,10 @@ for g, gy in ticks:
     ax.text(-0.02, gy - 0.25, g.upper(), transform=ax.get_yaxis_transform(), ha="right", va="center", fontsize=6, color=MUTED, fontweight="bold")
 ax.set_xlim(-3, 32)
 ax.legend(handles=[Line2D([], [], marker="o", ls="", color=GREY, ms=4.2, label="chat prompt"),
-                   Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="raw continuation (completion endpoint or prefill)")],
-          loc="lower right", handletextpad=0.3)
-header(fig, ax, "Only Claude Opus 5.5 predicts obscure bacterial proteins well",
+                   Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="raw continuation (completion endpoint or prefill)"),
+                   Line2D([], [], marker="D", ls="", color=PROTEIN_LM, ms=3.8, label="protein language model, residues before the cut")],
+          loc="center right", bbox_to_anchor=(1.0, 0.36), handletextpad=0.3)
+header(fig, ax, "Only Claude Opus 5.5 predicts obscure proteins, on par with ProtGPT3-10B",
        "668 bacterial and archaeal proteins from 167 unknown-function (DUF) families, no relative at ≥90% identity;\n"
        "points: mean over families, bars: 95% bootstrap CI. Claude Sonnet 4.5 refused 97% of prefill requests (not shown).")
 save(fig, "fig1_protein")

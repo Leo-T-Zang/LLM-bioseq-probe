@@ -31,13 +31,15 @@ Claude Opus 4.5: +1.9 points. Opus 4.6: +0.9. Opus 4.7: +8.9 (6.9 to 11.1). Opus
 family size (rho 0.37, 0.31 and 0.29), so the data was there from Opus 4.7 on and much stronger
 in Opus 5.5.
 
-## Protein language models score lower on the same input
+## Opus 5.5 matches the largest open protein language model
 
-Given only the residues before the cut, like the LLMs: ESM C 600M +13.0 (10.8 to 15.2), ProtGPT2
-+10.2 (8.3 to 12.2), ESM3-open 1.4B +8.5 (6.5 to 10.7), ESM-2 650M +7.0 (5.2 to 8.8). ESM-2 given
-the whole protein with one residue masked reaches +34.6 (31.8 to 37.2). The ESM models are masked
-models, so the left side alone is not their usual setting; ProtGPT2 reads left to right. Sanity
-checks and method: `scripts/probe/protein_lm.py`.
+Given only the residues before the cut, like the LLMs: ProtGPT3-10B (2026, left to right) +27.7
+(24.2 to 31.1), against +27.4 for Opus 5.5. Smaller models score lower: ESM C 600M +13.0 (10.7 to
+15.2), ProtGPT3-1.3B +11.6 (8.9 to 14.4), ProtGPT2 +10.2 (8.3 to 12.2), ESM3-open 1.4B +8.5 (6.4 to
+10.7), ESM-2 650M +7.0 (5.2 to 8.9). ESM-2 given the residues on both sides of the cut reaches
++34.6 (31.8 to 37.3). ProtGPT3-10B is more accurate on real proteins (38.4% vs 34.9%) and on shuffled
+ones (10.7% vs 7.5%); the gap, what each learned about residue order, is the same. Sanity checks
+and method: `scripts/probe/protein_lm.py`.
 
 ## No other model shows it
 

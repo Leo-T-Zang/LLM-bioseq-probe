@@ -19,6 +19,7 @@ ACCENT = "#D97757"  # Anthropic
 ACCENT_TEXT = "#B4532F"  # the same hue, dark enough for text
 OPENAI = "#4B4B55"
 GOOGLE = "#4285F4"
+PROTEIN_LM = "#9B59B6"  # protein language models, drawn as diamonds
 CLAUDE = {  # older generations lighter
     "Claude Sonnet 4.5": "#F6DFD4", "Claude Opus 4.5": "#F3D3C4", "Claude Opus 4.6": "#EFC1AB",
     "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT,
@@ -45,18 +46,20 @@ def color(model: str) -> str:
         return OPENAI
     if model.startswith("Gemini"):
         return GOOGLE
+    if model.startswith(("ProtGPT", "ESM")):
+        return PROTEIN_LM
     return CLAUDE.get(model, GREY)
 
 
 def header(fig, ax, title: str, subtitle: str):
-    """Bold one-line finding, then grey lines saying exactly what is plotted, set just above the axes."""
+    """Bold one-line finding above the axes; the grey note saying exactly what is plotted goes
+    below the axes, right-aligned, like a caption."""
     fig.canvas.draw()
-    top = ax.get_position().y1
     h = fig.get_figheight() * 72  # points
-    n = subtitle.count("\n") + 1
-    sub_y = top + 10 / h
-    fig.text(0.0, sub_y, subtitle, ha="left", va="bottom", fontsize=6.5, color=MUTED, linespacing=1.35)
-    fig.text(0.0, sub_y + (n * 6.5 * 1.35 + 4) / h, title, ha="left", va="bottom", fontsize=8.5, fontweight="bold", color=INK)
+    fig.text(0.0, ax.get_position().y1 + 10 / h, title, ha="left", va="bottom", fontsize=8.5, fontweight="bold", color=INK)
+    box = ax.get_tightbbox(fig.canvas.get_renderer()).transformed(fig.transFigure.inverted())
+    fig.text(box.x1, box.y0 - 6 / h, subtitle, ha="right", va="top", fontsize=6.2, color=MUTED, linespacing=1.35,
+             multialignment="right")
 
 
 def save(fig, stem: str):

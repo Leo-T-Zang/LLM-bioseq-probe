@@ -1,9 +1,9 @@
 """scripts/probe/protein_lm.py on Modal GPUs, one model per GPU -> results/plm_confirm/. About $1.
 
-The ESM C and ESM3-open weights are public on Hugging Face (biohub/ESMC-600M, biohub/esm3-sm-open-v1),
+The weights are public on Hugging Face (biohub/ESMC-600M, biohub/esm3-sm-open-v1, AI4PD/ProtGPT3-*),
 so no token is needed.
 
-    uv run --with modal modal run scripts/probe/protein_lm_modal.py --runs esmc-600m:prefix,esm3-open:prefix
+    uv run --with modal modal run scripts/probe/protein_lm_modal.py --runs esmc-600m:prefix,esm3-open:prefix,protgpt3-1.3B:prefix,protgpt3-10B:prefix
 """
 
 from pathlib import Path
@@ -19,7 +19,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu=["L4", "A10G", "L40S", "A100"], timeout=3 * 3600)
+@app.function(image=image, gpu=["L40S", "A100", "A100-80GB", "H100"], timeout=3 * 3600)
 def run(spec: str) -> dict[str, str]:
     import os
     import sys
