@@ -34,39 +34,53 @@ def region_seq(species, chrom, start):
     return r.text.strip()
 
 
+def classify(species: str, chrom: str, pos: int) -> dict | None:
+    """The window at chrom:pos as one candidate row (cds, intron or intergenic), or None."""
+    near = ens(f"/overlap/region/{species}/{chrom}:{pos - 5000}-{pos + WIN + 5000}", feature="gene")
+    window = ens(f"/overlap/region/{species}/{chrom}:{pos}-{pos + WIN - 1}", feature=["exon", "repeat", "gene"])
+    coding = [g for g in window if g["feature_type"] == "gene" and g.get("biotype") == "protein_coding"]
+    has = lambda t: any(f["feature_type"] == t for f in window)
+    if coding and has("exon"):
+        gene = ens(f"/lookup/id/{coding[0]['id']}", expand=1)
+        tx = [t for t in gene.get("Transcript", []) if t.get("is_canonical")]
+        if not tx:
+            return None
+        cds = get(f"{ENSEMBL}/sequence/id/{tx[0]['id']}", {"type": "cds", "content-type": "text/plain"}).text.strip()
+        if len(cds) < WIN + 30 or set(cds) - set("ACGT"):
+            return None
+        start = random.Random(f"{chrom}:{pos}").randrange(0, len(cds) - WIN)
+        return {"species": species, "region": "cds", "locus": f"{tx[0]['id']}:{start}", "window": cds[start : start + WIN]}
+    if has("repeat"):
+        return None
+    if not near:
+        region, locus = "intergenic", f"{chrom}:{pos}"
+    elif coding and not has("exon"):
+        region, locus = "intron", f"{chrom}:{pos} in {coding[0]['id']}"
+    else:
+        return None
+    s = region_seq(species, chrom, pos)
+    if len(s) == WIN and set(s) <= set("ACGT"):  # soft-masked repeats are lowercase
+        return {"species": species, "region": region, "locus": locus, "window": s}
+    return None
+
+
 def sample_genomic(species: str, n_chrom: int) -> list[dict]:
     chroms = {c["name"]: c["length"] for c in ens(f"/info/assembly/{species}")["top_level_region"]
               if c["coord_system"] == "chromosome" and c["name"] in {str(i) for i in range(1, n_chrom + 1)}}
     names, weights = list(chroms), list(chroms.values())
     got = {"cds": [], "intron": [], "intergenic": []}
-    while min(len(v) for v in got.values()) < PER_REGION:
-        chrom = rng.choices(names, weights)[0]
-        pos = rng.randrange(10_000, chroms[chrom] - 10_000)
-        near = ens(f"/overlap/region/{species}/{chrom}:{pos - 5000}-{pos + WIN + 5000}", feature="gene")
-        window = ens(f"/overlap/region/{species}/{chrom}:{pos}-{pos + WIN - 1}", feature=["exon", "repeat", "gene"])
-        coding = [g for g in window if g["feature_type"] == "gene" and g.get("biotype") == "protein_coding"]
-        has = lambda t: any(f["feature_type"] == t for f in window)
-        if not near and not has("repeat") and len(got["intergenic"]) < PER_REGION:
-            region, locus = "intergenic", f"{chrom}:{pos}"
-        elif coding and not has("exon") and not has("repeat") and len(got["intron"]) < PER_REGION:
-            region, locus = "intron", f"{chrom}:{pos} in {coding[0]['id']}"
-        elif coding and len(got["cds"]) < PER_REGION:
-            gene = ens(f"/lookup/id/{coding[0]['id']}", expand=1)
-            tx = [t for t in gene.get("Transcript", []) if t.get("is_canonical")]
-            if not tx:
-                continue
-            cds = get(f"{ENSEMBL}/sequence/id/{tx[0]['id']}", {"type": "cds", "content-type": "text/plain"}).text.strip()
-            if len(cds) < WIN + 30 or set(cds) - set("ACGT"):
-                continue
-            start = rng.randrange(0, len(cds) - WIN)
-            got["cds"].append({"species": species, "region": "cds", "locus": f"{tx[0]['id']}:{start}", "window": cds[start : start + WIN]})
-            continue
-        else:
-            continue
-        s = region_seq(species, chrom, pos)
-        if len(s) == WIN and set(s) <= set("ACGT"):  # soft-masked repeats are lowercase
-            got[region].append({"species": species, "region": region, "locus": locus, "window": s})
-    print(species, {k: len(v) for k, v in got.items()}, flush=True)
+    tried = 0
+    with ThreadPoolExecutor(8) as pool:
+        while min(len(v) for v in got.values()) < PER_REGION:
+            batch = []
+            for _ in range(32):
+                chrom = rng.choices(names, weights)[0]
+                batch.append((species, chrom, rng.randrange(10_000, chroms[chrom] - 10_000)))
+            for row in pool.map(lambda a: classify(*a), batch):
+                if row and len(got[row["region"]]) < PER_REGION:
+                    got[row["region"]].append(row)
+            tried += len(batch)
+            print(species, f"tried {tried}", {k: len(v) for k, v in got.items()}, flush=True)
     return [r for v in got.values() for r in v]
 
 
