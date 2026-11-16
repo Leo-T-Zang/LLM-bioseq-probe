@@ -25,6 +25,7 @@ MODELS: dict[str, tuple[str, dict]] = {
     "gpt-6-astra": ("openai_responses", {"reasoning": {"effort": "low"}}),  # lowest it accepts
     "claude-sonnet-4-5-20250929": ("anthropic", {}),
     "claude-opus-4-6": ("anthropic", {"output_config": {"effort": "low"}}),
+    "claude-opus-4-8": ("anthropic", {"output_config": {"effort": "low"}}),  # no thinking unless asked
     "claude-opus-5": ("anthropic", {"thinking": {"type": "disabled"}, "output_config": {"effort": "low"}}),
     "claude-opus-5-5": ("anthropic", {"output_config": {"effort": "low"}}),
     "gemini-2.5-pro": ("gemini", {"thinking_config": {"thinking_budget": 128}}),
