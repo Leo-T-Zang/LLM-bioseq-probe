@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem.probe import K, parse, prompt, score, shuffled
+from bioseq_mem.probe import K, parse, parse_echo, prompt, prompt_echo, score, shuffled
 from bioseq_mem.providers import MODELS, call
 
 ap = argparse.ArgumentParser()
@@ -29,6 +29,7 @@ ap.add_argument("--sequences", default="data/sequences_pilot.tsv")
 ap.add_argument("--out", default="results/probe")
 ap.add_argument("--guess", action="store_true", help="add the best-guess instruction (bioseq_mem.probe.GUESS)")
 ap.add_argument("--max-tokens", type=int, default=4000)
+ap.add_argument("--echo", action="store_true", help="copy-then-continue prompt (bioseq_mem.probe.prompt_echo)")
 args = ap.parse_args()
 
 seqs = pd.read_csv(args.sequences, sep="\t")
@@ -55,11 +56,12 @@ for model in args.models.split(","):
 
     def one(p, model=model):
         try:
-            r = call(model, prompt(p["prefix"], args.guess), args.max_tokens)
+            text = prompt_echo(p["prefix"]) if args.echo else prompt(p["prefix"], args.guess)
+            r = call(model, text, args.max_tokens)
             rec = {"text": r.text, "stop": r.stop, "top_logprobs": r.top_logprobs[:K], "usage": r.usage}
         except Exception as e:  # recorded, not scored as a miss
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
-        pred = parse(rec.get("text", ""))
+        pred = parse_echo(rec.get("text", ""), p["prefix"]) if args.echo else parse(rec.get("text", ""))
         return {"model": model, **{k: p[k] for k in ("accession", "pfam", "condition", "cut", "target")}, "pred": pred, **score(pred, p["target"]), **rec}
 
     with path.open("a") as f, ThreadPoolExecutor(args.workers) as pool:

@@ -48,3 +48,25 @@ def shuffled(seq: str, accession: str) -> str:
     residues = list(seq)
     random.Random(zlib.crc32(accession.encode())).shuffle(residues)
     return "".join(residues)
+
+
+def prompt_echo(prefix: str) -> str:
+    """Copy-then-continue: the model writes the given part, then keeps going, so the
+    residues it predicts follow its own copy of the sequence, as in plain next-token prediction."""
+    return (
+        "Below is the beginning of a protein sequence in one-letter amino acid codes. "
+        f"Write out the sequence: copy the given part exactly, then continue it with the next {K} amino acids. "
+        "Reply with the sequence only, on one line, with no spaces or other text.\n\n"
+        f">sequence\n{fasta(prefix)}"
+    )
+
+
+def parse_echo(text: str, prefix: str) -> str:
+    """The residues the model wrote after its copy of the prefix (anchored on the prefix's last 15)."""
+    letters = re.sub(r"[^A-Z]", "", re.sub(r"<[^>]*>", "", text).upper())
+    anchor = prefix[-15:]
+    i = letters.rfind(anchor)
+    if i == -1:
+        return ""
+    cont = letters[i + len(anchor) :]
+    return cont if cont and set(cont) <= set(STANDARD) else ""
