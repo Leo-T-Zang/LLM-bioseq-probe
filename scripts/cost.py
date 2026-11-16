@@ -28,7 +28,7 @@ def tokens(u: dict) -> tuple[int, int]:
 
 
 total_now = total_full = 0.0
-for p in sorted(p for d in ("results/probe", "results/probe_guess", "results/confirm", "results/dna", "results/dna_guess") for p in Path(d).glob("*.jsonl")):
+for p in sorted(p for d in ("results/probe", "results/probe_guess", "results/confirm", "results/dna", "results/dna_guess", "results/dna_confirm") for p in Path(d).glob("*.jsonl")):
     recs = [json.loads(line) for line in p.open()]
     t = [tokens(r.get("usage") or {}) for r in recs]
     pi, po = PRICE[p.stem]
