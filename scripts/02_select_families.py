@@ -13,10 +13,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from bioseq_mem.uniprot import count, europepmc_hits
+from bioseq_mem.uniprot import europepmc_hits
 
-CUTOFF = "2026-07-01"
-PER_CELL = 10
+PER_CELL = 16  # spare families; 03 keeps the first 10 per cell that yield enough sequences
 SEED = 0
 
 df = pd.read_csv("data/pfam_families.tsv", sep="\t")
@@ -32,17 +31,12 @@ df.loc[lit_rich, "lit"] = "rich"
 cands = df.dropna(subset=["seq", "lit"])
 print(cands.groupby(["seq", "lit"]).size())
 
-MIN_NEW = 20
-
 
 def check(row):
-    new = count(f"xref:pfam-{row.pfam} AND date_created:[{CUTOFF} TO *] AND reviewed:false")
-    if new < MIN_NEW:
-        return None
     hits = europepmc_hits(f'"{row.pfam}"')
     if row.lit == "poor" and hits > 3:
         return None
-    return {**row.to_dict(), "new_entries": new, "epmc_hits": hits}
+    return {**row.to_dict(), "epmc_hits": hits}
 
 
 picked = []
@@ -58,4 +52,4 @@ with ThreadPoolExecutor(4) as pool:
         picked += got[:PER_CELL]
 
 pd.DataFrame(picked).to_csv("data/families_pilot.tsv", sep="\t", index=False)
-print(pd.DataFrame(picked)[["seq", "lit", "pfam", "name", "proteins", "structures", "new_entries", "epmc_hits"]].to_string())
+print(pd.DataFrame(picked)[["seq", "lit", "pfam", "name", "proteins", "structures", "epmc_hits"]].to_string())

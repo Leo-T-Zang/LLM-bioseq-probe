@@ -49,6 +49,8 @@ for path in sorted(Path("results/probe").glob("*.jsonl")):
             {
                 **{k: d[k] for k in ("model", "condition", "accession", "pfam", "cut", "valid", "first_correct", "exact_run")},
                 "cell": f"seq-{s.seq_cell}/lit-{s.lit_cell}",
+                "era": s.era,
+                "first_seen": s.first_seen,
                 "outcome": "error" if "error" in d else ("refusal" if d.get("stop") == "refusal" else ("valid" if d["valid"] else "invalid")),
                 "logp": first_residue_logprob(d.get("top_logprobs") or [], t),
                 "background": t == "L",
@@ -67,6 +69,9 @@ acc["real - shuffled"] = acc["real"] - acc["shuffled"]
 print("residue-1 accuracy (valid replies)\n", acc.unstack("cell").round(3))
 base = df.drop_duplicates(["accession", "cut", "condition"]).groupby(["cell", "condition"])[["background", "unigram", "copy"]].mean()
 print("\nbaselines\n", base.round(3))
+era = v.groupby(["model", "era", "condition"]).first_correct.mean().unstack()
+era["real - shuffled"] = era["real"] - era["shuffled"]
+print("\nby era: old = entry before 2023, recent = entry from 2025-06\n", era.unstack("era").round(3))
 print("\nmean log P(next residue), logprob models\n", v.dropna(subset=["logp"]).groupby(["model", "cell", "condition"]).logp.mean().unstack().round(2))
 print("\nprobes with >= 5 residues exactly right\n", v.assign(hit=v.exact_run >= 5).groupby(["model", "condition"]).hit.sum().unstack())
 df.to_csv("results/probe_scored.tsv", sep="\t", index=False)

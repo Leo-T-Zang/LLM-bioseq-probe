@@ -33,7 +33,10 @@ def uniref90_size(accession: str) -> int | None:
 
 def pfam_spans(accession: str, pfam: str) -> list[tuple[int, int]]:
     url = f"https://www.ebi.ac.uk/interpro/api/entry/pfam/{pfam}/protein/uniprot/{accession}/"
-    d = get(url, {"format": "json"}).json()
+    r = get(url, {"format": "json"})
+    if r.status_code == 204 or not r.content:  # no match of this family on the protein
+        return []
+    d = r.json()
     locs = d["proteins"][0]["entry_protein_locations"]
     return [(f["start"], f["end"]) for loc in locs for f in loc["fragments"]]
 
