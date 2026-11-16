@@ -29,7 +29,9 @@ def markov_guess(prefix: str) -> str:
 
 
 rows = []
-for path in sorted(Path("results/dna").glob("*.jsonl")):
+for path in sorted(p for d in ("results/dna", "results/dna_guess") for p in Path(d).glob("*.jsonl")):
+    if path.parent.name == "dna" and path.stem == "deepseek-v4p1-flash":
+        continue  # declined almost every plain prompt; its best-guess run is in dna_guess
     for d in map(json.loads, path.open()):
         pred = parse(d.get("text", ""))
         if "error" in d or d.get("stop") == "refusal" or not pred:
