@@ -1,0 +1,90 @@
+outcome                     error  invalid  refusal  valid
+model                                                     
+claude-opus-4-6                 0        2        0   2218
+claude-opus-5                   0       33      236   1951
+claude-opus-5-5                 0       14        0   2206
+claude-sonnet-4-5-20250929      0        1      521   1698
+gemini-2.5-pro                  0        1        0   2219
+gemini-3.5-flash                0       11        0   2209
+gemini-3.8-flash                0        0        0   2220
+gemini-4-carbon                 0       14        0   2206
+gpt-4.1-2025-04-14              0        0        0   2220
+gpt-4o-2024-11-20               0      555        0   1665
+gpt-5.5                         0        7        0   2213
+gpt-6.1-sol                     2        1        0   2217 
+
+residue-1 accuracy (valid replies)
+ condition                               real  ...                  
+cell                       seq-poor/lit-poor  ... seq-rich/lit-rich
+model                                         ...                  
+claude-opus-4-6                        0.079  ...             0.180
+claude-opus-5                          0.097  ...             0.510
+claude-opus-5-5                        0.291  ...             0.595
+claude-sonnet-4-5-20250929             0.070  ...             0.130
+gemini-2.5-pro                         0.083  ...             0.143
+gemini-3.5-flash                       0.088  ...             0.416
+gemini-3.8-flash                       0.083  ...             0.473
+gemini-4-carbon                        0.129  ...             0.535
+gpt-4.1-2025-04-14                     0.058  ...            -0.003
+gpt-4o-2024-11-20                      0.069  ...            -0.003
+gpt-5.5                                0.088  ...             0.003
+gpt-6.1-sol                            0.075  ...             0.120
+
+[12 rows x 12 columns]
+
+baselines
+                              background  unigram   copy
+cell              condition                            
+seq-poor/lit-poor real            0.092    0.117  0.125
+                  shuffled        0.083    0.117  0.108
+seq-poor/lit-rich real            0.089    0.107  0.100
+                  shuffled        0.085    0.119  0.130
+seq-rich/lit-poor real            0.083    0.070  0.070
+                  shuffled        0.090    0.090  0.093
+seq-rich/lit-rich real            0.107    0.113  0.120
+                  shuffled        0.070    0.070  0.077
+
+by era: old = entry before 2023, recent = entry from 2025-06
+ condition                    real        shuffled        real - shuffled       
+era                           old recent      old recent             old recent
+model                                                                          
+claude-opus-4-6             0.153  0.132    0.072  0.067           0.081  0.065
+claude-opus-5               0.317  0.299    0.054  0.068           0.263  0.230
+claude-opus-5-5             0.436  0.439    0.063  0.063           0.372  0.376
+claude-sonnet-4-5-20250929  0.131  0.105    0.056  0.079           0.075  0.027
+gemini-2.5-pro              0.128  0.110    0.076  0.059           0.052  0.050
+gemini-3.5-flash            0.246  0.183    0.081  0.064           0.165  0.119
+gemini-3.8-flash            0.258  0.202    0.061  0.074           0.196  0.128
+gemini-4-carbon             0.324  0.231    0.056  0.064           0.268  0.167
+gpt-4.1-2025-04-14          0.050  0.079    0.036  0.074           0.014  0.005
+gpt-4o-2024-11-20           0.061  0.063    0.088  0.044          -0.027  0.018
+gpt-5.5                     0.072  0.074    0.060  0.065           0.012  0.009
+gpt-6.1-sol                 0.114  0.099    0.063  0.070           0.050  0.029
+
+mean log P(next residue), logprob models
+ condition                             real  shuffled
+model              cell                             
+gpt-4.1-2025-04-14 seq-poor/lit-poor -6.21     -6.05
+                   seq-poor/lit-rich -5.56     -5.63
+                   seq-rich/lit-poor -5.67     -5.87
+                   seq-rich/lit-rich -6.12     -6.27
+gpt-4o-2024-11-20  seq-poor/lit-poor -7.21     -6.43
+                   seq-poor/lit-rich -6.52     -6.11
+                   seq-rich/lit-poor -6.87     -6.51
+                   seq-rich/lit-rich -6.57     -7.44
+
+probes with >= 5 residues exactly right
+ condition                   real  shuffled
+model                                     
+claude-opus-4-6               19         0
+claude-opus-5                 69         0
+claude-opus-5-5              193         0
+claude-sonnet-4-5-20250929     5         0
+gemini-2.5-pro                 2         0
+gemini-3.5-flash              33         0
+gemini-3.8-flash              88         0
+gemini-4-carbon              152         0
+gpt-4.1-2025-04-14             1         0
+gpt-4o-2024-11-20              0         0
+gpt-5.5                        3         0
+gpt-6.1-sol                   18         0

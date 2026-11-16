@@ -1,9 +1,8 @@
-# llm-bioseq-probe for coding agents
+# LLM-bioseq-probe for coding agents
 
-- Credentials only in `.env` (a symlink to `../phylo-evals/.env`). Never read,
-  print, copy or commit their values.
-- A model call costs money. Listing models is free; get a human's go-ahead
-  before any run that sends prompts, with its estimated cost.
-- Raw model outputs go to `results/`, never edited by hand. Every number in a
-  report comes from a script over them.
-- Plots use matplotlib.
+- API keys live only in `.env` (see `.env.example`). Never read, print, copy or commit them.
+- Every model call costs money. Scripts are dry by default; get a human's go-ahead, with
+  the estimated cost (`scripts/tools/cost.py`), before passing `--run`.
+- Model replies go to `results/<run>/` and are never edited by hand; every number in the
+  docs comes from a script over them. Publish with `scripts/tools/export_outputs.py`.
+- Run scripts from the repo root. Plots use matplotlib.

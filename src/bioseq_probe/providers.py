@@ -16,7 +16,7 @@ from google.genai import types
 
 load_dotenv()
 
-# name -> (provider, settings). Proposed pilot list; confirm before a paid run.
+# model id -> (provider, request settings): thinking off, or at its lowest where it cannot be turned off.
 MODELS: dict[str, tuple[str, dict]] = {
     "gpt-4o-2024-11-20": ("openai_chat", {}),
     "gpt-4.1-2025-04-14": ("openai_chat", {}),

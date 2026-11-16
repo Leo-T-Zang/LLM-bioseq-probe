@@ -1,0 +1,49 @@
+model	subset	real	shuf	diff	lo	hi	fam
+claude-opus-4-6	all	14.2	6.9	7.3	3.5	11.8	37
+claude-opus-4-6	nonvert DUF seq-rich	9.1	6.2	2.9	-1.1	7.6	10
+claude-opus-4-6	nonvert DUF seq-poor	9.2	9.2	0.0	-5.4	7.6	7
+claude-opus-4-6	vert lit-rich	22.9	7.6	15.3	4.7	26.3	16
+claude-opus-5-5	all	43.7	6.3	37.4	29.6	45.5	37
+claude-opus-5-5	nonvert DUF seq-rich	41.0	5.1	35.9	22.5	50.5	10
+claude-opus-5-5	nonvert DUF seq-poor	32.2	7.6	24.6	8.3	39.1	7
+claude-opus-5-5	vert lit-rich	63.3	6.7	56.5	42.1	70.4	16
+claude-opus-5	all	30.8	6.1	24.6	16.3	33.5	37
+claude-opus-5	nonvert DUF seq-rich	28.5	6.5	22.0	8.7	36.7	10
+claude-opus-5	nonvert DUF seq-poor	9.8	8.0	1.8	-3.0	8.0	7
+claude-opus-5	vert lit-rich	54.0	4.6	49.4	33.3	64.6	16
+claude-sonnet-4-5-20250929	all	11.8	6.7	5.1	2.2	8.1	37
+claude-sonnet-4-5-20250929	nonvert DUF seq-rich	9.7	6.7	3.0	-2.9	8.1	10
+claude-sonnet-4-5-20250929	nonvert DUF seq-poor	5.2	7.6	-2.4	-4.9	-0.1	7
+claude-sonnet-4-5-20250929	vert lit-rich	19.3	6.5	12.8	7.0	19.3	16
+gemini-2.5-pro	all	11.9	6.8	5.1	1.3	9.7	37
+gemini-2.5-pro	nonvert DUF seq-rich	7.6	5.1	2.5	-2.4	6.9	10
+gemini-2.5-pro	nonvert DUF seq-poor	8.1	8.1	0.0	-5.4	5.2	7
+gemini-2.5-pro	vert lit-rich	20.0	7.3	12.7	3.2	25.0	16
+gemini-3.5-flash	all	21.5	7.2	14.2	7.3	21.7	37
+gemini-3.5-flash	nonvert DUF seq-rich	9.9	8.8	1.0	-3.4	6.4	10
+gemini-3.5-flash	nonvert DUF seq-poor	7.7	8.7	-1.1	-5.6	3.8	7
+gemini-3.5-flash	vert lit-rich	43.8	5.7	38.1	21.2	54.1	16
+gemini-3.8-flash	all	23.0	6.8	16.2	8.5	24.7	37
+gemini-3.8-flash	nonvert DUF seq-rich	7.3	6.2	1.1	-3.3	6.8	10
+gemini-3.8-flash	nonvert DUF seq-poor	7.6	2.7	4.9	1.1	9.0	7
+gemini-3.8-flash	vert lit-rich	49.2	8.3	41.0	21.8	59.0	16
+gemini-4-carbon	all	27.7	6.0	21.8	14.0	30.3	37
+gemini-4-carbon	nonvert DUF seq-rich	8.0	5.1	2.9	0.7	5.8	10
+gemini-4-carbon	nonvert DUF seq-poor	10.8	3.2	7.6	4.3	12.4	7
+gemini-4-carbon	vert lit-rich	59.6	6.7	52.9	37.0	67.2	16
+gpt-4.1-2025-04-14	all	6.5	5.5	1.0	-1.1	3.1	37
+gpt-4.1-2025-04-14	nonvert DUF seq-rich	7.3	7.3	0.0	-4.4	4.7	10
+gpt-4.1-2025-04-14	nonvert DUF seq-poor	5.4	4.3	1.1	-2.7	5.0	7
+gpt-4.1-2025-04-14	vert lit-rich	5.7	3.8	1.9	-2.6	5.5	16
+gpt-4o-2024-11-20	all	6.2	6.6	-0.4	-3.0	2.0	37
+gpt-4o-2024-11-20	nonvert DUF seq-rich	6.1	5.9	0.2	-7.0	6.1	10
+gpt-4o-2024-11-20	nonvert DUF seq-poor	6.1	7.7	-1.6	-7.1	3.9	7
+gpt-4o-2024-11-20	vert lit-rich	7.2	5.8	1.4	-3.1	6.1	16
+gpt-5.5	all	7.3	6.2	1.1	-0.9	3.0	37
+gpt-5.5	nonvert DUF seq-rich	5.1	5.1	-0.0	-3.1	2.6	10
+gpt-5.5	nonvert DUF seq-poor	8.7	6.0	2.7	-1.3	7.2	7
+gpt-5.5	vert lit-rich	8.0	6.7	1.3	-3.5	5.6	16
+gpt-6.1-sol	all	10.6	6.7	3.9	0.9	7.5	37
+gpt-6.1-sol	nonvert DUF seq-rich	9.5	7.3	2.2	-0.4	5.1	10
+gpt-6.1-sol	nonvert DUF seq-poor	6.5	4.9	1.6	-1.6	4.9	7
+gpt-6.1-sol	vert lit-rich	16.5	7.0	9.5	1.2	19.3	16

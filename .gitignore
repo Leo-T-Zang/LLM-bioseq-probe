@@ -1,7 +1,18 @@
 .env
 .venv/
-__pycache__/
-data/
-results/
-*.egg-info/
 .venv-plm/
+__pycache__/
+*.egg-info/
+
+# large or regenerable inputs (see README for sources)
+data/genomes/
+data/new_entries/
+data/pfam_families.tsv
+data/*.log
+
+# local working outputs; the published copy is results/outputs/ (scripts/tools/export_outputs.py)
+results/*/
+!results/outputs/
+results/*.png
+results/*.pdf
+results/probe_scored.tsv

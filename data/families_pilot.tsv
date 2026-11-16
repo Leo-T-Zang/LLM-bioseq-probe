@@ -1,0 +1,65 @@
+pfam	name	type	proteins	structures	taxa	duf	seq	lit	epmc_hits
+PF14229	Domain of unknown function (DUF4332)	family	1169	0	2193	True	poor	poor	0
+PF38596	Domain of unknown function (DUF13970)	domain	919	0	935	True	poor	poor	0
+PF15483	Domain of unknown function (DUF4641)	disordered	376	0	410	True	poor	poor	0
+PF19359	Family of unknown function (DUF5936)	family	986	0	1100	True	poor	poor	0
+PF08901	Protein of unknown function (DUF1847)	family	625	0	1235	True	poor	poor	0
+PF40643	Domain of unknown function (DUF15750)	domain	560	0	768	True	poor	poor	0
+PF42540	Domain of unknown function (DUF17397)	domain	825	0	1165	True	poor	poor	0
+PF06935	Protein of unknown function (DUF1284)	family	1165	0	1905	True	poor	poor	0
+PF15006	Domain of unknown function (DUF4517)	family	1370	0	3093	True	poor	poor	0
+PF24098	Domain of unknown function (DUF7380)	domain	305	0	875	True	poor	poor	0
+PF20086	Family of unknown function (DUF6478)	family	558	0	763	True	poor	poor	0
+PF33950	Domain of unknown function (DUF9891)	domain	725	0	436	True	poor	poor	0
+PF37648	Domain of unknown function (DUF13406)	domain	583	0	1107	True	poor	poor	0
+PF20089	Family of unknown function (DUF6481)	family	1102	0	1274	True	poor	poor	1
+PF45183	Domain of unknown function (DUF19745)	domain	1084	0	1463	True	poor	poor	0
+PF34771	Domain of unknown function (DUF10705)	domain	325	0	414	True	poor	poor	0
+PF15088	NADH dehydrogenase [ubiquinone] 1 subunit C1, mitochondrial	family	766	227	1934	False	poor	rich	0
+PF16595	PAM-interacting domain of CRISPR-associated endonuclease Cas9	domain	343	152	636	False	poor	rich	1
+PF05392	Cytochrome C oxidase chain VIIB	family	1124	118	2207	False	poor	rich	0
+PF54616	PufM N-terminal domain	domain	685	226	1007	False	poor	rich	0
+PF07347	NADH:ubiquinone oxidoreductase subunit B14.5a (Complex I-B14.5a)	family	1449	242	3905	False	poor	rich	1
+PF06514	Photosystem II 12 kDa extrinsic protein (PsbU)	family	457	133	958	False	poor	rich	1
+PF31342	Ribosomal protein uL30, C-terminal domain	domain	612	100	1091	False	poor	rich	0
+PF16451	Betacoronavirus-like spike glycoprotein S1, N-terminal	domain	818	1633	219	False	poor	rich	12
+PF09160	FimH, mannose binding	domain	362	110	267	False	poor	rich	3
+PF01701	Photosystem I reaction centre subunit IX / PsaJ	family	1221	181	2871	False	poor	rich	0
+PF10246	Mitochondrial ribosomal protein MRP-S35	domain	1405	105	3776	False	poor	rich	0
+PF17211	VHL box domain	domain	904	144	2292	False	poor	rich	0
+PF10147	Growth arrest and DNA-damage-inducible proteins-interacting protein 1	family	1055	111	3129	False	poor	rich	0
+PF09782	NADH:ubiquinone oxidoreductase, NDUFB6/B17 subunit	family	1469	230	3664	False	poor	rich	0
+PF08715	Coronavirus papain-like peptidase	family	1402	324	328	False	poor	rich	7
+PF41451	mS39, C-terminal TPR repeats	repeat	856	103	1718	False	poor	rich	0
+PF06945	Protein of unknown function (DUF1289)	family	8765	0	7263	True	rich	poor	0
+PF28475	Domain of unknown function (DUF8413)	domain	5887	0	7764	True	rich	poor	0
+PF07583	Protein of unknown function (DUF1549)	family	7627	0	1479	True	rich	poor	2
+PF06949	Protein of unknown function (DUF1292)	family	5630	0	5622	True	rich	poor	0
+PF15936	Domain of unknown function (DUF4749)	family	8901	0	3893	True	rich	poor	2
+PF13334	Domain of unknown function (DUF4094)	family	5408	0	1104	True	rich	poor	3
+PF03640	Secreted repeat of unknown function	repeat	5707	0	5528	True	rich	poor	3
+PF29561	Domain of unknown function (DUF8566)	domain	13286	0	916	True	rich	poor	0
+PF20169	Family of unknown function (DUF6537)	domain	6212	0	5321	True	rich	poor	0
+PF11387	Protein of unknown function (DUF2795)	domain	5845	0	5734	True	rich	poor	0
+PF22942	Domain of unknown function (DUF7025)	domain	8592	0	2369	True	rich	poor	0
+PF24864	Domain of unknown function (DUF7730)	domain	7235	0	1688	True	rich	poor	0
+PF12277	Protein of unknown function (DUF3618)	family	6947	0	5384	True	rich	poor	0
+PF32018	Domain of unknown function (DUF8986)	domain	5257	0	3406	True	rich	poor	0
+PF11915	Protein of unknown function (DUF3433)	family	5675	0	2154	True	rich	poor	2
+PF05128	Domain of unknown function (DUF697)	domain	5273	0	6537	True	rich	poor	1
+PF14716	Helix-hairpin-helix domain	domain	16362	725	16735	False	rich	rich	0
+PF17789	Macroglobulin domain MG4	domain	11217	112	3706	False	rich	rich	2
+PF00019	Transforming growth factor beta like domain	domain	35756	177	5316	False	rich	rich	18
+PF04565	RNA polymerase Rpb2, domain 3	domain	42578	1365	42709	False	rich	rich	7
+PF00079	Serpin (serine protease inhibitor)	domain	50535	283	11047	False	rich	rich	43
+PF01033	Somatomedin B domain	family	10065	290	4135	False	rich	rich	3
+PF00339	Arrestin (or S-antigen), N-terminal domain	domain	27394	128	8231	False	rich	rich	9
+PF00466	Ribosomal protein L10	family	30964	866	36478	False	rich	rich	9
+PF00498	FHA domain	family	125278	123	24373	False	rich	rich	22
+PF01851	Proteasome/cyclosome repeat	repeat	9692	179	9459	False	rich	rich	1
+PF00043	Glutathione S-transferase, C-terminal domain	domain	82975	347	20330	False	rich	rich	114
+PF00574	Clp protease	domain	50326	201	35573	False	rich	rich	17
+PF10276	Zinc-finger domain	domain	7850	290	14050	False	rich	rich	1
+PF00689	Cation transporting ATPase, C-terminus	family	78125	272	26717	False	rich	rich	14
+PF08079	Ribosomal L30 N-terminal domain	domain	7585	684	9360	False	rich	rich	0
+PF00115	Cytochrome C and Quinol oxidase polypeptide I	family	151884	307	102650	False	rich	rich	32
