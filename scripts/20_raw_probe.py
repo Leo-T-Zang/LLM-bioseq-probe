@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -46,9 +47,13 @@ def continue_raw(model: str, prefix: str) -> tuple[str, dict, str | None]:
     """(continuation text, usage, stop reason); a refusal is kept apart from a miss."""
     kind, t = MODELS[model], text_of(prefix)
     if kind == "fireworks":
-        r = httpx.post("https://api.fireworks.ai/inference/v1/completions", timeout=120,
-                       headers={"Authorization": f"Bearer {os.environ['FIREWORKS_API_KEY']}"},
-                       json={"model": f"accounts/fireworks/models/{model}", "prompt": t, "max_tokens": 24, "temperature": 0})
+        for attempt in range(8):  # back off on rate limits (429)
+            r = httpx.post("https://api.fireworks.ai/inference/v1/completions", timeout=120,
+                           headers={"Authorization": f"Bearer {os.environ['FIREWORKS_API_KEY']}"},
+                           json={"model": f"accounts/fireworks/models/{model}", "prompt": t, "max_tokens": 24, "temperature": 0})
+            if r.status_code != 429:
+                break
+            time.sleep(min(2**attempt, 60))
         r.raise_for_status()
         j = r.json()
         return j["choices"][0]["text"], j.get("usage", {}), j["choices"][0].get("finish_reason")
