@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from bioseq_probe.figstyle import ACCENT, GREY, GRID, INK, LIGHT_GREY, MUTED, color, header, save
+from bioseq_probe.figstyle import ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, color, header, save
 
 LABEL = {"claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
          "claude-opus-5-5": "Claude Opus 5.5", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
@@ -90,7 +90,7 @@ for i, (cell, name) in enumerate(cells):
         ax.plot([r.lo, r.hi], [y + dy, y + dy], color=col, lw=1.3, solid_capstyle="round")
         ax.plot(r.D, y + dy, "o", ms=3.6, color=col, mec="white", mew=0.4)
         if m == "claude-opus-5-5" and r.exact20_real:
-            ax.text(r.hi + 1, y + dy, f"{int(r.exact20_real)} exact 20-nt runs", va="center", fontsize=6, color=ACCENT)
+            ax.text(r.hi + 1, y + dy, f"{int(r.exact20_real)} exact 20-nt runs", va="center", fontsize=6, color=ACCENT_TEXT)
 ax.set_yticks([-i - (0.5 if i >= 3 else 0) for i in range(len(cells))], [n for _, n in cells])
 ax.axvline(0, color=MUTED, lw=0.6)
 ax.set_xlim(-12, 46)
@@ -134,7 +134,7 @@ fig, ax = plt.subplots(figsize=(4.6, 2.9))
 shades = {">= 50": "#E6E9EF", ">= 100": "#C5CBD6", ">= 200": "#8B93A3"}
 ys = range(len(s))
 for col_name, shade in shades.items():
-    ax.barh(list(ys), s[col_name], height=0.62, color=[color(m) if col_name == ">= 200" and m.startswith("Claude") else shade for m in s.index],
+    ax.barh(list(ys), s[col_name], height=0.62, color=[color(m) if col_name == ">= 200" and color(m) != GREY else shade for m in s.index],
             edgecolor="white", linewidth=0.4, label=f"exact run {col_name.replace('>=', '≥')} residues", zorder=2)
 for y, m in zip(ys, s.index):
     ax.text(s.loc[m, ">= 50"] + 0.8, y, f"longest {s.loc[m, 'longest']}", va="center", fontsize=6, color=MUTED)
@@ -142,7 +142,7 @@ ax.set_yticks(list(ys), list(s.index))
 ax.set_xlabel("Cut points continued letter for letter (of 158)")
 ax.legend(loc="lower right", handletextpad=0.4, reverse=True)
 header(fig, ax, "Several models recite hundreds of residues of famous proteins",
-       "Cut points that any model continued 10/10 in the pilot; asked for the next 200 residues. Bars overlap: each darker bar is a subset; Claude's \u2265200 segment in colour.")
+       "Cut points that any model continued 10/10 in the pilot; asked for the next 200 residues. Bars overlap: each darker bar is a subset; the \u2265200 segment in each lab's colour.")
 save(fig, "fig4_recall")
 
 # Fig 5: the gap by family size -----------------------------------------------------------------
@@ -183,7 +183,7 @@ for m in order:
     if top:
         z = by_bin(g[papers.reindex(g.index) == 0])
         ax.plot(xs, z[:, 0], "--", color=col, lw=1.0, zorder=3)
-        ax.text(xs[-1] - 0.06, z[-1, 0] + 0.6, "zero-paper families", fontsize=6, color=ACCENT, ha="right", va="bottom")
+        ax.text(xs[-1] - 0.06, z[-1, 0] + 0.6, "zero-paper families", fontsize=6, color=ACCENT_TEXT, ha="right", va="bottom")
 ends.sort()
 orig = [y for y, _ in ends]
 for i in range(1, len(ends)):  # keep end labels at least 2.6 points apart ...

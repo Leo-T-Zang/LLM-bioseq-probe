@@ -1,5 +1,6 @@
-"""One look for every figure: journal-sized type, thin lines, grey by default, indigo for the
-Claude models (darker for newer generations)."""
+"""One look for every figure: journal-sized type, thin lines, and each lab's own colour
+(Claude models darker for newer generations, open-weight models grey). Checked for
+colour-blind separation; every model is also named on the chart."""
 
 from pathlib import Path
 
@@ -14,10 +15,13 @@ MUTED = "#6B7385"
 GRID = "#ECEEF2"
 GREY = "#A3AAB8"
 LIGHT_GREY = "#D3D7DF"
-ACCENT = "#3D5A98"  # indigo, shared with the method diagram
+ACCENT = "#D97757"  # Anthropic
+ACCENT_TEXT = "#B4532F"  # the same hue, dark enough for text
+OPENAI = "#4B4B55"
+GOOGLE = "#4285F4"
 CLAUDE = {  # older generations lighter
-    "Claude Sonnet 4.5": "#D6DEEE", "Claude Opus 4.6": "#BCC8E2", "Claude Opus 4.8": "#93A6CF",
-    "Claude Opus 5": "#6A82B8", "Claude Opus 5.5": ACCENT,
+    "Claude Sonnet 4.5": "#F4D8CB", "Claude Opus 4.6": "#EFC3AE", "Claude Opus 4.8": "#E8A88B",
+    "Claude Opus 5": "#E08E6E", "Claude Opus 5.5": ACCENT,
 }
 
 for path in Path("/usr/share/fonts").rglob("LiberationSans-*.ttf"):
@@ -36,6 +40,11 @@ plt.rcParams.update({
 
 
 def color(model: str) -> str:
+    """By display name: Claude by generation, GPT charcoal, Gemini blue, open-weight grey."""
+    if model.startswith("GPT-"):
+        return OPENAI
+    if model.startswith("Gemini"):
+        return GOOGLE
     return CLAUDE.get(model, GREY)
 
 
