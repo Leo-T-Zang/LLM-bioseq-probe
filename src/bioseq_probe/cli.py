@@ -76,4 +76,4 @@ def main():
 
     gap, lo, hi, n = family_gap([json.loads(line) for line in out.open()])
     print(f"\n{args.model}: next amino acid, real minus shuffled = {gap:+.1f} points (95% CI {lo:+.1f} to {hi:+.1f}), {n} valid replies")
-    print("for reference (results/confirm_tests.tsv): Claude Opus 5.5 +27.4, Opus 5 +9.7, Opus 4.8 +7.7, GPT-6 Astra +2.9, GPT-5.5 +2.1, Gemini 4 Carbon +0.9")
+    print("for reference (results/confirm_tests.tsv): Claude Opus 5.5 +27.4, Opus 5 +9.7, Opus 4.7 +8.9, Opus 4.8 +7.7, GPT-6 Astra +2.9, GPT-5.5 +2.1, Gemini 4 Carbon +0.9")

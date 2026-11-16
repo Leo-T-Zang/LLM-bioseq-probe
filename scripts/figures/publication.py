@@ -15,7 +15,7 @@ from matplotlib.lines import Line2D
 
 from bioseq_probe.figstyle import ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, color, header, save
 
-LABEL = {"claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
+LABEL = {"claude-opus-4-5-20251101": "Claude Opus 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-7": "Claude Opus 4.7", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
          "claude-opus-5-5": "Claude Opus 5.5", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
          "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "gemini-3.5-flash": "Gemini 3.5 Flash", "gemini-3.8-flash": "Gemini 3.8 Flash",
          "gpt-6.1-sol": "GPT-6.1 Sol"}
@@ -37,7 +37,8 @@ def forest(ax, rows, y_of, xlabel):
 c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")
 raw = pd.read_csv("results/raw_summary.tsv", sep="\t")
 groups = [
-    ("Anthropic", [("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-6", "chat")]),
+    ("Anthropic", [("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
+                   ("claude-opus-4-6", "chat"), ("claude-opus-4-5-20251101", "chat")]),
     ("OpenAI", [("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
     ("Google", [("gemini-4-carbon", "chat"), ("Gemini 2.5 Pro (raw)", "raw")]),
     ("Open-weight", [(n, "raw") for n in raw.name if n.endswith("(raw)") and not n.startswith(("Gemini", "Claude"))]),
@@ -58,7 +59,7 @@ for g, members in groups:
         y_of[name] = y
         y -= 1
     y -= 0.35
-fig, ax = plt.subplots(figsize=(4.6, 4.3))
+fig, ax = plt.subplots(figsize=(4.6, 4.75))
 forest(ax, rows, y_of, "Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.set_yticks(list(y_of.values()), list(y_of.keys()))
 for t, m in zip(ax.get_yticklabels(), y_of):
@@ -171,7 +172,8 @@ def by_bin(g, rng=np.random.default_rng(0)):
 fig, ax = plt.subplots(figsize=(4.6, 3.0))
 xs = np.arange(len(bins))
 ends = []
-order = ["gpt-5.5", "gpt-6-astra", "gemini-4-carbon", "claude-opus-4-6", "claude-opus-4-8", "claude-opus-5", "claude-opus-5-5"]
+order = ["gpt-5.5", "gpt-6-astra", "gemini-4-carbon", "claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8",
+         "claude-opus-5", "claude-opus-5-5"]
 for m in order:
     g = family_gaps(m)
     r = by_bin(g)
@@ -197,9 +199,10 @@ for i in range(1, len(ends) + 1):  # ... and centre each pushed-apart run on its
         start = i
 for y, m in ends:
     top = m == "claude-opus-5-5"
-    ax.text(xs[-1] + 0.12, y, LABEL[m], va="center", fontsize=6.2, color=INK if top else MUTED, fontweight="bold" if top else "normal")
+    ax.text(xs[-1] + 0.12, y, LABEL[m], va="center", fontsize=6.2, color=INK if top else MUTED, fontweight="bold" if top else "normal",
+            bbox={"fc": "white", "ec": "none", "pad": 0.4})
 ax.axhline(0, color=MUTED, lw=0.6)
-ax.set_ylim(-6.5, 47)
+ax.set_ylim(-9.5, 47)
 ax.set_xticks(xs, ["300–1k", "1k–3k", "3k–10k", ">10k"])
 ax.set_xlim(-0.25, len(bins) - 1 + 1.25)
 ax.set_xlabel("Proteins in the family (Pfam)")

@@ -20,8 +20,8 @@ ACCENT_TEXT = "#B4532F"  # the same hue, dark enough for text
 OPENAI = "#4B4B55"
 GOOGLE = "#4285F4"
 CLAUDE = {  # older generations lighter
-    "Claude Sonnet 4.5": "#F4D8CB", "Claude Opus 4.6": "#EFC3AE", "Claude Opus 4.8": "#E8A88B",
-    "Claude Opus 5": "#E08E6E", "Claude Opus 5.5": ACCENT,
+    "Claude Sonnet 4.5": "#F6DFD4", "Claude Opus 4.5": "#F3D3C4", "Claude Opus 4.6": "#EFC1AB",
+    "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT,
 }
 
 for path in Path("/usr/share/fonts").rglob("LiberationSans-*.ttf"):

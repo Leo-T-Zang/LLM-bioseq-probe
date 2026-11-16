@@ -26,15 +26,19 @@ Give a model the start of a protein and ask for the next amino acids.
 
 | | Next amino acid, real vs shuffled | Gap, points (95% CI) |
 |---|---|---|
-| Claude Opus 5.5 | 34.9% vs 7.5% | **+27.4 (24.7 to 30.1)** |
-| Claude Opus 5 | 17.5% vs 7.7% | +9.7 (7.4 to 12.2) |
-| Claude Opus 4.8 | | +7.7 (5.6 to 9.9) |
-| Claude Opus 4.6, GPT-5.5, GPT-6 Astra, Gemini 4 Carbon | | +0.9 to +2.9 |
+| Claude Opus 5.5 | 34.9% vs 7.5% | **+27.4 (24.7 to 30.0)** |
+| Claude Opus 5 | 17.5% vs 7.7% | +9.7 (7.3 to 12.2) |
+| Claude Opus 4.8 | 15.5% vs 7.8% | +7.7 (5.5 to 9.8) |
+| Claude Opus 4.7 | 16.1% vs 7.2% | +8.9 (6.9 to 11.1) |
+| Claude Opus 4.5 and 4.6, GPT-5.5, GPT-6 Astra, Gemini 4 Carbon | | +0.9 to +2.9 |
 | Gemini 2.5 Pro and 7 open-weight models, raw next-token continuation | | -0.0 to +1.9 |
 
 - The Opus 5.5 gap grows with family size (Spearman 0.27, p = 0.0002), including in the
   128 families with zero papers, and appears in 95% of families
   ([figure](figures/fig5_family_size.png)).
+- Given the same input (the residues before the cut), protein language models score lower:
+  ESM C 600M +13.0, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0. ESM-2 given the whole
+  protein reaches +34.6.
 - It is not test-time reasoning (same accuracy when Opus 5.5 writes 15 tokens or fewer)
   and not the prompt format (copy-then-continue gives the same result).
 - **DNA:** Opus 5.5 predicts human and mouse coding sequence (25 exact 20-nucleotide
@@ -68,7 +72,7 @@ costs roughly $1 to $20, depending on the model's price and how much it thinks.
 ```
 src/bioseq_probe/   API clients, prompts, scoring, shuffles, a .2bit reader, the probe-model CLI
 scripts/data/       build the test sets (UniProt, InterPro, Europe PMC, GENCODE, UCSC, ENA)
-scripts/probe/      ask the models (chat, raw continuation, DNA, recall length)
+scripts/probe/      ask the models (chat, raw continuation, DNA, recall length, protein LMs)
 scripts/analysis/   the statistics behind every number above
 scripts/figures/    the figures in figures/ (method_svg.py draws the method, publication.py the five data figures)
 scripts/tools/      cost tally, model listing, smoke tests, output export

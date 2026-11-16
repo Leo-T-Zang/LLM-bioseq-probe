@@ -7,7 +7,7 @@ Run through each provider's API in November 2026. Figures: `figures/fig0_method`
 On 668 bacterial and archaeal proteins from 167 unknown-function families (no papers to speak
 of, no relative at 90% identity), Claude Opus 5.5 gets the next amino acid right 34.9% of the
 time, against 7.5% on the same residues shuffled and 5% for a blind guess: a gap of 27.4
-points (95% CI 24.7 to 30.1, sign-flip permutation p < 0.0001).
+points (95% CI 24.7 to 30.0, sign-flip permutation p < 0.0001).
 
 - The gap appears in 95% of families (median 25 points); the 10 largest families give 14% of it.
 - It grows with family size (Spearman 0.27, p = 0.0002): 22 points for families of 300-1k
@@ -26,9 +26,18 @@ points (95% CI 24.7 to 30.1, sign-flip permutation p < 0.0001).
 
 ## Within Claude, the signal is recent
 
-Claude Opus 4.6: +0.9 points. Opus 4.8: +7.7 (5.6 to 9.9). Opus 5: +9.7 (7.4 to 12.2). Opus
-5.5: +27.4. Opus 4.8 and Opus 5 also grow with family size (rho 0.31 and 0.29), so the data
-was there from Opus 4.8 on and much stronger in Opus 5.5.
+Claude Opus 4.5: +1.9 points. Opus 4.6: +0.9. Opus 4.7: +8.9 (6.9 to 11.1). Opus 4.8: +7.7
+(5.5 to 9.8). Opus 5: +9.7 (7.3 to 12.2). Opus 5.5: +27.4. Opus 4.7, 4.8 and 5 also grow with
+family size (rho 0.37, 0.31 and 0.29), so the data was there from Opus 4.7 on and much stronger
+in Opus 5.5.
+
+## Protein language models score lower on the same input
+
+Given only the residues before the cut, like the LLMs: ESM C 600M +13.0 (10.8 to 15.2), ProtGPT2
++10.2 (8.3 to 12.2), ESM3-open 1.4B +8.5 (6.5 to 10.7), ESM-2 650M +7.0 (5.2 to 8.8). ESM-2 given
+the whole protein with one residue masked reaches +34.6 (31.8 to 37.2). The ESM models are masked
+models, so the left side alone is not their usual setting; ProtGPT2 reads left to right. Sanity
+checks and method: `scripts/probe/protein_lm.py`.
 
 ## No other model shows it
 
