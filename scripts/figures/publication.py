@@ -39,12 +39,12 @@ c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")
 raw = pd.read_csv("results/raw_summary.tsv", sep="\t")
 plm = pd.read_csv("results/plm_summary.tsv", sep="\t").query("mode == 'prefix'").set_index("model")
 groups = [
+    ("Protein language models", [("protgpt3-10B", "plm"), ("protgpt3-1.3B", "plm"), ("protgpt2", "plm")]),
     ("Anthropic", [("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
                    ("claude-opus-4-6", "chat"), ("claude-opus-4-5-20251101", "chat")]),
     ("OpenAI", [("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
     ("Google", [("gemini-4-carbon", "chat"), ("Gemini 2.5 Pro (raw)", "raw")]),
     ("Open-weight", [(n, "raw") for n in raw.name if n.endswith("(raw)") and not n.startswith(("Gemini", "Claude"))]),
-    ("Protein language models", [("protgpt3-10B", "plm"), ("protgpt3-1.3B", "plm")]),
 ]
 rows, y_of, ticks, y = [], {}, [], 0.0
 for g, members in groups:
@@ -66,7 +66,7 @@ for g, members in groups:
         y_of[name] = y
         y -= 1
     y -= 0.35
-fig, ax = plt.subplots(figsize=(4.6, 5.2))
+fig, ax = plt.subplots(figsize=(4.6, 5.45))
 forest(ax, rows, y_of, "Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.set_yticks(list(y_of.values()), list(y_of.keys()))
 for t, m in zip(ax.get_yticklabels(), y_of):
@@ -78,7 +78,7 @@ ax.set_xlim(-3, 32)
 ax.legend(handles=[Line2D([], [], marker="o", ls="", color=GREY, ms=4.2, label="chat prompt"),
                    Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="raw continuation (completion endpoint or prefill)"),
                    Line2D([], [], marker="D", ls="", color=PROTEIN_LM, ms=3.8, label="protein language model, residues before the cut")],
-          loc="center right", bbox_to_anchor=(1.0, 0.36), handletextpad=0.3)
+          loc="lower right", handletextpad=0.3)
 header(fig, ax, "Only Claude Opus 5.5 predicts obscure proteins, on par with ProtGPT3-10B",
        "668 bacterial and archaeal proteins from 167 unknown-function (DUF) families, no relative at ≥90% identity;\n"
        "points: mean over families, bars: 95% bootstrap CI. Claude Sonnet 4.5 refused 97% of prefill requests (not shown).")
