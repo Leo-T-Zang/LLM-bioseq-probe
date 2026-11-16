@@ -1,6 +1,6 @@
 """Nucleotide probe windows -> data/dna_windows_{genomic,bacterial}.tsv. Free.
 
-    uv run python scripts/12_dna_data.py genomic|bacterial
+    uv run python scripts/12_dna_data.py genomic|bacterial|confirm
 
 Each window is 220 nt (5'->3' on the feature's strand): a 200-nt prefix and the 20 nt
 to predict.
@@ -90,17 +90,23 @@ def window(s: str, rng: random.Random, coding: bool) -> str | None:
     return None
 
 
-def sample_species(species: str) -> list[dict]:
+ALL_REGIONS = ("cds", "utr5", "utr3", "promoter", "intron", "lncrna", "intergenic")
+
+
+def sample_species(species: str, regions=ALL_REGIONS, per=PER_REGION, seed="dna", exclude=frozenset()) -> list[dict]:
+    """exclude: transcript ids (and intergenic loci) already used, e.g. by the pilot."""
     path2bit, gtf, n = GENOMES[species]
     tb = TwoBit(path2bit)
     chroms = {f"chr{i}" for i in range(1, n + 1)}
     tx, genes = read_gtf(gtf, chroms)
-    rng = random.Random(f"dna-{species}")
-    pc = [(t, v) for t, v in tx.items() if v[2] == "protein_coding" and v[3]["CDS"]]
-    lnc = [(t, v) for t, v in tx.items() if v[2] == "lncRNA"]
+    rng = random.Random(f"{seed}-{species}")
+    pc = [(t, v) for t, v in tx.items() if v[2] == "protein_coding" and v[3]["CDS"] and t not in exclude]
+    lnc = [(t, v) for t, v in tx.items() if v[2] == "lncRNA" and t not in exclude]
     rows = []
 
     def take(region, items, make):
+        if region not in regions:
+            return
         got, tries = 0, 0
         order = items[:]
         rng.shuffle(order)
@@ -110,7 +116,7 @@ def sample_species(species: str) -> list[dict]:
             if w:
                 rows.append({"species": species, "region": region, "locus": f"{species}:{region}:{t}", "window": w})
                 got += 1
-                if got == PER_REGION:
+                if got == per:
                     break
         print(species, region, got, f"from {tries} transcripts", flush=True)
 
@@ -147,6 +153,8 @@ def sample_species(species: str) -> list[dict]:
     take("intron", pc, lambda t, v: window(intron(v), rng, coding=False))
     take("lncrna", lnc, lambda t, v: window(spliced(tb, v[0], v[1], v[3]["exon"]), rng, coding=False))
 
+    if "intergenic" not in regions:
+        return rows
     # intergenic: no gene within 5 kb
     padded = {}
     for c, spans in genes.items():
@@ -160,7 +168,7 @@ def sample_species(species: str) -> list[dict]:
     names = sorted(chroms)
     weights = [tb.size(c) for c in names]
     got = tries = 0
-    while got < PER_REGION:
+    while got < per:
         tries += 1
         c = rng.choices(names, weights)[0]
         i = rng.randrange(0, tb.size(c) - WIN)
@@ -169,7 +177,7 @@ def sample_species(species: str) -> list[dict]:
         if k >= 0 and ends[k] > i:
             continue
         w = tb.get(c, i, i + WIN)
-        if w.isupper() and "N" not in w:
+        if w.isupper() and "N" not in w and f"{species}:intergenic:{c}:{i}" not in exclude:
             rows.append({"species": species, "region": "intergenic", "locus": f"{species}:intergenic:{c}:{i}", "window": w})
             got += 1
     print(species, "intergenic", got, f"from {tries} positions", flush=True)
@@ -193,10 +201,23 @@ def bacterial_cds(acc: str) -> dict | None:
 part = sys.argv[1]
 if part == "genomic":
     rows = sample_species("human") + sample_species("mouse")
-else:
+    out = "data/dna_windows_genomic.tsv"
+elif part == "bacterial":
     accs = pd.read_csv("data/confirm_sequences.tsv", sep="\t").accession.drop_duplicates().sample(frac=1, random_state=7).tolist()
     with ThreadPoolExecutor(8) as pool:
         rows = [r for r in pool.map(bacterial_cds, accs[: BACTERIAL * 2]) if r][:BACTERIAL]
+    out = "data/dna_windows_bacterial.tsv"
+else:  # "confirm": pre-registered DNA confirmation run, docs/preregistration.md
+    pilot = pd.concat([pd.read_csv(p, sep="\t") for p in ("data/dna_windows_genomic.tsv", "data/dna_windows_bacterial.tsv")])
+    used = {loc.split(":")[2] for loc in pilot.locus if loc.count(":") == 2} | set(pilot.locus)
+    rows = []
+    for sp in ("human", "mouse"):
+        rows += sample_species(sp, ("cds", "intron", "promoter", "intergenic"), per=500, seed="dna-confirm", exclude=used)
+    pilot_accs = {loc.split()[0] for loc in pilot.locus if " " in loc}
+    accs = [a for a in pd.read_csv("data/confirm_sequences.tsv", sep="\t").accession.drop_duplicates() if a not in pilot_accs]
+    with ThreadPoolExecutor(8) as pool:
+        rows += [r for r in pool.map(bacterial_cds, accs) if r][:500]
+    out = "data/dna_confirm_windows.tsv"
 df = pd.DataFrame(rows)
-df.to_csv(f"data/dna_windows_{part}.tsv", sep="\t", index=False)
+df.to_csv(out, sep="\t", index=False)
 print(df.groupby(["species", "region"]).size())

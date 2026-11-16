@@ -20,9 +20,10 @@ ap.add_argument("--workers", type=int, default=16)
 ap.add_argument("--run", action="store_true")
 ap.add_argument("--guess", action="store_true", help="add the best-guess instruction")
 ap.add_argument("--out", default="results/dna")
+ap.add_argument("--windows", default="data/dna_windows_*.tsv", help="glob of window files")
 args = ap.parse_args()
 
-wins = pd.concat([pd.read_csv(p, sep="\t") for p in sorted(Path("data").glob("dna_windows_*.tsv"))])
+wins = pd.concat([pd.read_csv(p, sep="\t") for p in sorted(Path().glob(args.windows))])
 probes = []
 for w in wins.itertuples():
     for cond, s in (("real", w.window), ("shuffled", dinucleotide_shuffle(w.window, w.locus))):
