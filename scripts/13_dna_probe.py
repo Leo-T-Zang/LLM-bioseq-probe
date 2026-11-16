@@ -18,6 +18,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--models", default=",".join(MODELS))
 ap.add_argument("--workers", type=int, default=16)
 ap.add_argument("--run", action="store_true")
+ap.add_argument("--guess", action="store_true", help="add the best-guess instruction")
+ap.add_argument("--out", default="results/dna")
 args = ap.parse_args()
 
 wins = pd.concat([pd.read_csv(p, sep="\t") for p in sorted(Path("data").glob("dna_windows_*.tsv"))])
@@ -29,7 +31,7 @@ print(f"{len(probes)} probes per model")
 if not args.run:
     raise SystemExit("dry run; pass --run")
 
-out = Path("results/dna")
+out = Path(args.out)
 out.mkdir(parents=True, exist_ok=True)
 for model in args.models.split(","):
     path = out / f"{model}.jsonl"
@@ -38,7 +40,7 @@ for model in args.models.split(","):
 
     def one(p, model=model):
         try:
-            r = call(model, prompt(p["prefix"]))
+            r = call(model, prompt(p["prefix"], args.guess))
             rec = {"text": r.text, "stop": r.stop, "usage": r.usage}
         except Exception as e:
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
