@@ -64,7 +64,7 @@ def continue_raw(model: str, prefix: str) -> tuple[str, dict, str | None]:
     c = genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options=types.HttpOptions(api_version="v1beta", timeout=120_000))
     r = c.models.generate_content(model=model, contents=[
         types.Content(role="user", parts=[types.Part(text=ASK)]), types.Content(role="model", parts=[types.Part(text=t)])],
-        config=types.GenerateContentConfig(temperature=0, max_output_tokens=200, thinking_config=types.ThinkingConfig(thinking_budget=128)))  # only the first 10 residues are scored
+        config=types.GenerateContentConfig(temperature=0, max_output_tokens=2000, thinking_config=types.ThinkingConfig(thinking_budget=128)))
     stop = str(r.candidates[0].finish_reason) if r.candidates else f"blocked: {r.prompt_feedback}"
     return r.text or "", r.usage_metadata.model_dump() if r.usage_metadata else {}, stop
 
