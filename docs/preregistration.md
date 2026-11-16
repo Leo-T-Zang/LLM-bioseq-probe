@@ -68,3 +68,41 @@ Accuracy by UniParc first-seen year; exact-run lengths; refusal rates.
   GLM-5.3, MiniMax M3, gpt-oss-120b, Nemotron 3 Ultra) run on the pilot set as
   exploratory comparisons; thinking off where the model allows, else lowest effort.
 - Protein language model reference dropped.
+
+---
+
+# DNA confirmation run: pre-registration
+
+Written 2026-11-16 after the DNA pilot (`results/dna_summary.tsv`) and before any
+confirmation window was drawn or any model was called. The pilot suggested a signal
+for Claude Opus 5.5 in human and mouse coding sequence only.
+
+## Sample
+
+New windows, none overlapping a pilot transcript or locus, 220 nt each (200-nt
+prefix, 20 nt to predict), from hg38/mm39 (.2bit, RepeatMasker soft-masking) and
+GENCODE basic v50/vM39 canonical transcripts, sampled as in `scripts/12_dna_data.py`
+with a new seed. 500 windows per cell:
+
+- human and mouse: CDS, intron, promoter (1 kb upstream of the TSS), intergenic
+  (no gene within 5 kb); non-coding windows contain no repeat and no N;
+- bacterial/archaeal CDS: ENA coding sequences of proteins in
+  `data/confirm_sequences.tsv` not used in the pilot (as many as available, up to 500).
+
+## Probes and models
+
+The pilot DNA prompt and parser, unchanged; each window asked on the real sequence
+and on a dinucleotide-preserving shuffle of the same 220 nt. Models: claude-opus-5-5
+(primary), claude-opus-5, gpt-5.5. (Gemini 4 Carbon blocks most DNA prompts.)
+
+## Tests (per model and cell; errors, refusals, unparseable replies excluded)
+
+1. **D1, order signal.** D = first-nucleotide accuracy on real minus shuffled windows.
+   One-sided window-level sign-flip permutation test (10,000), window bootstrap 95% CI.
+   Pass: p < 0.001 and CI lower bound > 5 percentage points.
+2. **D2, verbatim recall.** Real windows continued with all 20 nt exactly right, the 20 nt
+   not present in the prefix. Chance is about 1e-12 per window. Pass: >= 3 such
+   windows and 0 on shuffled windows.
+
+Predictions: Opus 5.5 passes D1 and D2 in human and mouse CDS, and fails both in
+introns, promoters, intergenic DNA and bacterial CDS. Every cell is reported.
