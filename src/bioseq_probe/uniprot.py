@@ -1,6 +1,6 @@
 """Small wrappers over the UniProt, UniParc, UniRef, InterPro and Europe PMC REST APIs."""
 
-from bioseq_mem.http import get
+from bioseq_probe.http import get
 
 UNIPROT = "https://rest.uniprot.org"
 

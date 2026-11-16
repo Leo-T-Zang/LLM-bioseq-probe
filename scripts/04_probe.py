@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem.probe import K, parse, parse_echo, prompt, prompt_echo, score, shuffled
-from bioseq_mem.providers import MODELS, call
+from bioseq_probe.probe import K, parse, parse_echo, prompt, prompt_echo, score, shuffled
+from bioseq_probe.providers import MODELS, call
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--models", default=",".join(MODELS))
@@ -27,9 +27,9 @@ ap.add_argument("--workers", type=int, default=8)
 ap.add_argument("--run", action="store_true", help="make paid API calls")
 ap.add_argument("--sequences", default="data/sequences_pilot.tsv")
 ap.add_argument("--out", default="results/probe")
-ap.add_argument("--guess", action="store_true", help="add the best-guess instruction (bioseq_mem.probe.GUESS)")
+ap.add_argument("--guess", action="store_true", help="add the best-guess instruction (bioseq_probe.probe.GUESS)")
 ap.add_argument("--max-tokens", type=int, default=4000)
-ap.add_argument("--echo", action="store_true", help="copy-then-continue prompt (bioseq_mem.probe.prompt_echo)")
+ap.add_argument("--echo", action="store_true", help="copy-then-continue prompt (bioseq_probe.probe.prompt_echo)")
 args = ap.parse_args()
 
 seqs = pd.read_csv(args.sequences, sep="\t")

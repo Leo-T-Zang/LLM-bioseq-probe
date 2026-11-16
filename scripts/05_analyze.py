@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem.probe import parse, score, shuffled
+from bioseq_probe.probe import parse, score, shuffled
 
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")
 

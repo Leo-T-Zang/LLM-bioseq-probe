@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from bioseq_mem.providers import MODELS
+from bioseq_probe.providers import MODELS
 
 VENDOR_COLOR = {"OpenAI": "#2a78d6", "Anthropic": "#eb6834", "Google": "#1baf7a"}  # categorical slots 1-3
 CELLS = ["seq-rich/lit-poor", "seq-rich/lit-rich", "seq-poor/lit-poor", "seq-poor/lit-rich"]
@@ -136,7 +136,7 @@ for p in Path("results/probe").glob("*.jsonl"):
         t_out += u.get("output_tokens") or u.get("completion_tokens") or ((u.get("candidates_token_count") or 0) + (u.get("thoughts_token_count") or 0))
     tokens[p.stem] = {"input tokens": t_in, "output tokens": t_out}
 
-html = f"""<!doctype html><meta charset="utf-8"><title>bioseq-memorization: next-residue probe</title>
+html = f"""<!doctype html><meta charset="utf-8"><title>llm-bioseq-probe: next-residue probe</title>
 <style>body{{font:15px/1.5 system-ui,sans-serif;max-width:1100px;margin:2em auto;padding:0 1em;color:#0b0b0b;background:#fcfcfb}}
 table{{border-collapse:collapse;font-size:13px;margin:1em 0}}td,th{{border-bottom:1px solid #e5e4e0;padding:3px 8px;text-align:right}}
 th:first-child,td:first-child{{text-align:left}}.muted{{color:#52514e}}img{{max-width:100%}}</style>

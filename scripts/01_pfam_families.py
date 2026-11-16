@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from bioseq_mem.http import get
+from bioseq_probe.http import get
 
 url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/"
 params = {"page_size": 200, "extra_fields": "counters", "format": "json"}

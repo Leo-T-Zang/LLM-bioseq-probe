@@ -1,4 +1,4 @@
-# bioseq-memorization
+# llm-bioseq-probe
 
 Do closed-source LLMs (Anthropic, OpenAI, Google) carry biological sequence
 databases such as UniProt in their training data? This project probes them by

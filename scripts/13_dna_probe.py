@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem.dna import K, PREFIX, dinucleotide_shuffle, parse, prompt
-from bioseq_mem.providers import MODELS, call
+from bioseq_probe.dna import K, PREFIX, dinucleotide_shuffle, parse, prompt
+from bioseq_probe.providers import MODELS, call
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--models", default=",".join(MODELS))

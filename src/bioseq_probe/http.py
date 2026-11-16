@@ -4,7 +4,7 @@ import time
 
 import httpx
 
-CLIENT = httpx.Client(timeout=120, headers={"User-Agent": "bioseq-memorization/0.1"})
+CLIENT = httpx.Client(timeout=120, headers={"User-Agent": "llm-bioseq-probe/0.1"})
 
 
 def get(url: str, params: dict | None = None, tries: int = 10) -> httpx.Response:

@@ -1,4 +1,4 @@
-# bioseq-memorization for coding agents
+# llm-bioseq-probe for coding agents
 
 - Credentials only in `.env` (a symlink to `../phylo-evals/.env`). Never read,
   print, copy or commit their values.

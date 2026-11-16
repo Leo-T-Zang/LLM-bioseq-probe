@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from bioseq_mem.uniprot import europepmc_hits
+from bioseq_probe.uniprot import europepmc_hits
 
 PER_CELL = 16  # spare families; 03 keeps the first 10 per cell that yield enough sequences
 SEED = 0

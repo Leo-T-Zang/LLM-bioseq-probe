@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from bioseq_mem.uniprot import pfam_spans, search, uniparc_first_seen, uniref90_size
+from bioseq_probe.uniprot import pfam_spans, search, uniparc_first_seen, uniref90_size
 
 ERAS = {"old": "date_created:[* TO 2022-12-31]", "recent": "date_created:[2025-06-01 TO *]"}
 PER_ERA = 3

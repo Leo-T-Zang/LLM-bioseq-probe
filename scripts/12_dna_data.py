@@ -31,8 +31,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from bioseq_mem.http import get
-from bioseq_mem.twobit import TwoBit
+from bioseq_probe.http import get
+from bioseq_probe.twobit import TwoBit
 
 WIN = 220
 PER_REGION = 100

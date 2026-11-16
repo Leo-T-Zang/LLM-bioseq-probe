@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from bioseq_mem.probe import K, parse
+from bioseq_probe.probe import K, parse
 
 rng = np.random.default_rng(0)
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")

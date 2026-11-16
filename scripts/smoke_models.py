@@ -3,8 +3,8 @@
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
-from bioseq_mem.probe import parse, prompt
-from bioseq_mem.providers import MODELS, call
+from bioseq_probe.probe import parse, prompt
+from bioseq_probe.providers import MODELS, call
 
 PREFIX = "MSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTF"  # GFP, famous
 

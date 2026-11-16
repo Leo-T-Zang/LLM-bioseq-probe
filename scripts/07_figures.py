@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from bioseq_mem.providers import MODELS
+from bioseq_probe.providers import MODELS
 
 FULL = 2220
 LABEL = {

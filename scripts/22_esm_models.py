@@ -23,7 +23,7 @@ torch.set_grad_enabled(False)
 torch.set_num_threads(16)
 
 
-def shuffled(seq: str, accession: str) -> str:  # same as bioseq_mem.probe.shuffled
+def shuffled(seq: str, accession: str) -> str:  # same as bioseq_probe.probe.shuffled
     residues = list(seq)
     random.Random(zlib.crc32(accession.encode())).shuffle(residues)
     return "".join(residues)

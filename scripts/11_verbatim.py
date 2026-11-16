@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem.probe import K, parse, shuffled
+from bioseq_probe.probe import K, parse, shuffled
 
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")
 group = pd.read_csv("data/sequence_groups.tsv", sep="\t").set_index("accession").group

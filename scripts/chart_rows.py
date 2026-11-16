@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from bioseq_mem.providers import MODELS
+from bioseq_probe.providers import MODELS
 
 LABEL = {"gpt-4o-2024-11-20": "GPT-4o", "gpt-4.1-2025-04-14": "GPT-4.1", "gpt-5.5": "GPT-5.5", "gpt-6.1-sol": "GPT-6.1 Sol",
          "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-5": "Claude Opus 5",

@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from bioseq_mem.dna import PREFIX, dinucleotide_shuffle, parse
+from bioseq_probe.dna import PREFIX, dinucleotide_shuffle, parse
 
 rng = np.random.default_rng(2026)
 wins = pd.read_csv("data/dna_confirm_windows.tsv", sep="\t").set_index("locus")

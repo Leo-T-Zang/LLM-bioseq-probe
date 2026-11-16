@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_mem import probe
-from bioseq_mem.providers import call
+from bioseq_probe import probe
+from bioseq_probe.providers import call
 
 N_AA = 200
 STANDARD = "ACDEFGHIKLMNPQRSTVWY"

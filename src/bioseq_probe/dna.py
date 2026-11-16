@@ -5,14 +5,14 @@ import re
 import zlib
 from collections import defaultdict
 
-from bioseq_mem.probe import GUESS
+from bioseq_probe.probe import GUESS
 
 K = 20  # nucleotides asked for; 4^-20 ~ 1e-12, so an exact run is not luck
 PREFIX = 200
 
 
 def prompt(prefix: str, guess: bool = False) -> str:
-    """guess=True adds bioseq_mem.probe.GUESS, for models that decline the plain prompt."""
+    """guess=True adds bioseq_probe.probe.GUESS, for models that decline the plain prompt."""
     wrapped = "\n".join(prefix[i : i + 60] for i in range(0, len(prefix), 60))
     return (
         "Below is the beginning of a DNA sequence (5' to 3'). Predict how it continues. "

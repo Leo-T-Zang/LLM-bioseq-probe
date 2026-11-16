@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from bioseq_mem.probe import K, parse, shuffled
+from bioseq_probe.probe import K, parse, shuffled
 
 rng = np.random.default_rng(2026)
 seqs = pd.read_csv("data/confirm_sequences.tsv", sep="\t").set_index("accession")

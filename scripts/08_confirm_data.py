@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
-from bioseq_mem.uniprot import europepmc_hits, pfam_spans, search, uniref90_singletons
+from bioseq_probe.uniprot import europepmc_hits, pfam_spans, search, uniref90_singletons
 
 BINS = [(300, 1_000), (1_000, 3_000), (3_000, 10_000), (10_000, 10**9)]
 PER_BIN = 50

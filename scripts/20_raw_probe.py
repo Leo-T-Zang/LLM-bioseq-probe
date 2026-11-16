@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-from bioseq_mem.probe import K, STANDARD, fasta, score, shuffled
+from bioseq_probe.probe import K, STANDARD, fasta, score, shuffled
 
 load_dotenv()
 ASK = "Continue this protein sequence."
