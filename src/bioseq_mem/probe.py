@@ -12,10 +12,14 @@ def fasta(seq: str, width: int = 60) -> str:
     return "\n".join(seq[i : i + width] for i in range(0, len(seq), width))
 
 
-def prompt(prefix: str) -> str:
+GUESS = "Give your best guess even if you are uncertain. Do not explain or refuse. "
+
+
+def prompt(prefix: str, guess: bool = False) -> str:
+    """guess=True adds GUESS, for models that decline the plain prompt."""
     return (
         "Below is the beginning of a protein sequence in one-letter amino acid codes. "
-        f"Predict how it continues. Reply with exactly the next {K} amino acids as one-letter "
+        f"Predict how it continues. {GUESS if guess else ''}Reply with exactly the next {K} amino acids as one-letter "
         "codes on one line, and nothing else.\n\n"
         f">sequence\n{fasta(prefix)}"
     )

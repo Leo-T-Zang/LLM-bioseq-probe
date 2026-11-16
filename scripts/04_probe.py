@@ -27,6 +27,8 @@ ap.add_argument("--workers", type=int, default=8)
 ap.add_argument("--run", action="store_true", help="make paid API calls")
 ap.add_argument("--sequences", default="data/sequences_pilot.tsv")
 ap.add_argument("--out", default="results/probe")
+ap.add_argument("--guess", action="store_true", help="add the best-guess instruction (bioseq_mem.probe.GUESS)")
+ap.add_argument("--max-tokens", type=int, default=4000)
 args = ap.parse_args()
 
 seqs = pd.read_csv(args.sequences, sep="\t")
@@ -37,7 +39,7 @@ probes = [
     for cond, s in (("real", r.sequence), ("shuffled", shuffled(r.sequence, r.accession)))
 ]
 probes = probes[: args.limit]
-chars = sum(len(prompt(p["prefix"])) for p in probes)
+chars = sum(len(prompt(p["prefix"], args.guess)) for p in probes)
 print(f"{len(probes)} probes per model, ~{chars // 4:,} input tokens per model (chars/4)")
 
 if not args.run:
@@ -53,7 +55,7 @@ for model in args.models.split(","):
 
     def one(p, model=model):
         try:
-            r = call(model, prompt(p["prefix"]))
+            r = call(model, prompt(p["prefix"], args.guess), args.max_tokens)
             rec = {"text": r.text, "stop": r.stop, "top_logprobs": r.top_logprobs[:K], "usage": r.usage}
         except Exception as e:  # recorded, not scored as a miss
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
