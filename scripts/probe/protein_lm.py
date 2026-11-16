@@ -19,6 +19,7 @@ beta 62%, lysozyme 82%; ESM C 600M ubiquitin 100%, hemoglobin beta 80%; ESM3-ope
 left only (printed by every run): ProtGPT2 ubiquitin 65%, hemoglobin beta 37%; ProtGPT3-1.3B 98%,
 33%; ProtGPT3-10B 100%, 84%.
 
+    pilot set: add data/sequences_pilot.tsv results/plm_pilot after the model list
     .venv-plm/bin/python scripts/probe/protein_lm.py esm2-650M:prefix,esm2-650M:full,esmc-600m:prefix,esmc-600m:full,esm3-open:prefix,esm3-open:full,protgpt2:prefix,protgpt3-1.3B:prefix,protgpt3-10B:prefix
 """
 
@@ -140,8 +141,10 @@ def sanity(logp_fn, mode: str) -> str:
 
 
 
-def main(spec: str):
-    seqs = pd.read_csv("data/confirm_sequences.tsv", sep="\t")
+def main(spec: str, sequences: str = "data/confirm_sequences.tsv", out: str = str(OUT)):
+    """spec: model:mode,...; sequences: the test set; out: the directory for the replies."""
+    seqs = pd.read_csv(sequences, sep="\t")
+    OUT = Path(out)
     OUT.mkdir(parents=True, exist_ok=True)
     runs = [r.split(":") for r in spec.split(",")]
     for mname in dict.fromkeys(m for m, _ in runs):
@@ -167,4 +170,4 @@ def main(spec: str):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(*sys.argv[1:])

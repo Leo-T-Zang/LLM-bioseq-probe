@@ -38,7 +38,10 @@ Given only the residues before the cut, like the LLMs: ProtGPT3-10B (2026, left 
 15.2), ProtGPT3-1.3B +11.6 (8.9 to 14.4), ProtGPT2 +10.2 (8.3 to 12.2), ESM3-open 1.4B +8.5 (6.4 to
 10.7), ESM-2 650M +7.0 (5.2 to 8.9). ESM-2 given the residues on both sides of the cut reaches
 +34.6 (31.8 to 37.3). ProtGPT3-10B is more accurate on real proteins (38.4% vs 34.9%) and on shuffled
-ones (10.7% vs 7.5%); the gap, what each learned about residue order, is the same. Sanity checks
+ones (10.7% vs 7.5%); the gap, what each learned about residue order, is the same. ProtGPT3-10B also
+follows Opus 5.5's family-size curve bin for bin (23.9, 25.3, 30.6, 37.1 against 21.2, 26.0, 31.7,
+36.7), and on the pilot set it keeps most of its accuracy from well-known to obscure proteins (+51.4
+to +38.2), like Opus 5.5 (+51.9 to +33.3) and unlike Gemini 4 Carbon (+47.6 to +5.3). Sanity checks
 and method: `scripts/probe/protein_lm.py`.
 
 ## No other model shows it

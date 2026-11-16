@@ -22,6 +22,7 @@ RUNS = {  # local working directory -> what it holds
     "dna_guess": "DNA pilot, best-guess prompt",
     "dna_confirm": "DNA confirmation set",
     "plm_confirm": "protein language models on the confirmation set",
+    "plm_pilot": "ProtGPT3-10B on the pilot set",
 }
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 OUT = Path("results/outputs")

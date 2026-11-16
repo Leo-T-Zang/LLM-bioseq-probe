@@ -39,6 +39,7 @@ Give a model the start of a protein and ask for the next amino acids.
 - Given the same input (the residues before the cut), Opus 5.5 matches ProtGPT3-10B (+27.7), the
   newest and largest open left-to-right protein language model, and scores well above smaller
   ones: ESM C 600M +13.0, ProtGPT3-1.3B +11.6, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0.
+  ProtGPT3-10B also follows the same family-size curve ([figure](figures/fig6_protein_lm.png)).
 - It is not test-time reasoning (same accuracy when Opus 5.5 writes 15 tokens or fewer)
   and not the prompt format (copy-then-continue gives the same result).
 - **DNA:** Opus 5.5 predicts human and mouse coding sequence (25 exact 20-nucleotide
