@@ -41,9 +41,9 @@ Give a model the start of a protein and ask for the next amino acids.
   300 proteins per family. Every Claude model from Opus 4.7 on follows the trend (Spearman 0.30
   to 0.50); GPT and Gemini stay at zero ([figure](figures/fig5_family_size.png)). The gap is the
   same in the 128 families with zero papers.
-- Given the same input (the residues before the cut), Opus 5.5 matches ProtGPT3-10B (+27.7), the
-  newest and largest open left-to-right protein language model, and scores well above smaller
-  ones: ESM C 600M +13.0, ProtGPT3-1.3B +11.6, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0.
+- Given the same input (the residues before the cut), Fable 5.2 beats every open protein language
+  model we ran: ProGen3-3B +32.5, ProtGPT3-10B +27.7, ESM C 600M +13.0, ProtGPT3-1.3B +11.6,
+  ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0. Opus 5.5 (+27.4) is level with ProtGPT3-10B.
   ProtGPT3-10B also follows the same family-size curve ([figure](figures/fig6_protein_lm.png)).
 - It is not test-time reasoning: the API reports thinking tokens on only 9% of Fable 5.2's
   answers and 36% of Opus 5.5's, and the answers without thinking are just as accurate. Nor is
