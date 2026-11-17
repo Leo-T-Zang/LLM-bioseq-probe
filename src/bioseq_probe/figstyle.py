@@ -63,7 +63,50 @@ def header(fig, ax, title: str, subtitle: str):
              multialignment="right")
 
 
+# Web figures follow the page's light and dark themes: every fixed colour below becomes a CSS
+# variable (the light value is the fallback). Dark values reverse the Claude ramp, so newer models
+# are brighter on a dark page, and lighten the GPT greys, which would vanish on it.
+THEME = {  # light hex: (variable, dark value)
+    "#1d2433": ("ink", "#e6e8ee"), "#6b7385": ("muted", "#a0a8b8"), "#eceef2": ("grid", "#30353f"),
+    "#a3aab8": ("grey", "#7d8596"), "#d3d7df": ("light", "#4a505c"), "#ffffff": ("bg", "var(--global-bg-color, #1c1c1d)"),
+    "#b4532f": ("accent-text", "#eda48a"),
+    "#2c2c33": ("gpt-61", "#ececf1"), "#4b4b55": ("gpt-6", "#c2c2cc"), "#7c7c87": ("gpt-55", "#8e8e9a"),
+    "#f6dfd4": ("c-s45", "#5e3e31"), "#f3d3c4": ("c-o45", "#6a4535"), "#efc1ab": ("c-o46", "#7d4f3b"),
+    "#eaad92": ("c-o47", "#925a41"), "#e59c7d": ("c-o48", "#a86548"), "#df8a68": ("c-o5", "#bf6f4e"),
+    "#c0694c": ("c-f51", "#e8906c"), "#9c3a1c": ("c-f52", "#ffb08a"),
+    "#e6e9ef": ("bar-50", "#353a45"), "#c5cbd6": ("bar-100", "#555c6a"), "#8b93a3": ("bar-200", "#8b93a3"),
+}
+WEB_FONT = "Arial, 'Liberation Sans', Helvetica, sans-serif"  # Liberation Sans is metric-compatible with Arial
+
+
+def theme_css() -> str:
+    """The variables, for the page that shows the web figures."""
+    light = "; ".join(f"--fig-{v}: {k}" for k, (v, _) in THEME.items())
+    dark = "; ".join(f"--fig-{v}: {d}" for _, (v, d) in THEME.items())
+    return f"d-article {{ {light}; }}\nhtml[data-theme='dark'] d-article {{ {dark}; }}"
+
+
+def web_svg(text: str, stem: str) -> str:
+    """matplotlib SVG -> an inline-ready SVG: themed colours, unique ids, no global styles."""
+    import re
+
+    text = text[text.index("<svg"):]
+    text = re.sub(r'(<svg[^>]*?) width="[^"]*" height="[^"]*"', rf'\1 id="{stem}" width="100%"', text, count=1)
+    text = re.sub(r'id="([^"]+)"', lambda m: m.group(0) if m.group(1) == stem else f'id="{stem}-{m.group(1)}"', text)
+    text = re.sub(r'(url\(#|href="#)([^)"]+)', rf"\1{stem}-\2", text)
+    text = text.replace("*{", f"#{stem} *{{")  # matplotlib's global stroke style, scoped to this figure
+    text = re.sub(r"font-family: ?[^;\"]+", f"font-family: {WEB_FONT}", text)
+    text = re.sub(r"(fill|stroke): ?(#[0-9a-fA-F]{6})",
+                  lambda m: f"{m.group(1)}: var(--fig-{THEME[m.group(2).lower()][0]}, {m.group(2)})" if m.group(2).lower() in THEME else m.group(0), text)
+    return text
+
+
 def save(fig, stem: str):
-    Path("figures").mkdir(exist_ok=True)
+    Path("figures/web").mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
         fig.savefig(f"figures/{stem}.{ext}", bbox_inches="tight", pad_inches=0.04, facecolor="white")
+    raw = Path(f"figures/web/{stem}.raw.svg")
+    plt.rcParams["svg.hashsalt"] = stem  # stable ids
+    fig.savefig(raw, bbox_inches="tight", pad_inches=0.04, facecolor="none")
+    Path(f"figures/web/{stem}.svg").write_text(web_svg(raw.read_text(), stem))
+    raw.unlink()
