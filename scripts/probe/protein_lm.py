@@ -7,9 +7,9 @@ residue right after the cut: the most likely of the 20 standard residues.
 
   prefix  only the residues before the cut: the same information the LLMs get. ESM-2 and ESM C are
           masked (bidirectional) models, so they see the prefix, a mask and the end-of-sequence token;
-          ProtGPT2 and ProtGPT3 are autoregressive and predict the next token (ProtGPT3: one token per
-          residue; ProtGPT2: a residue's probability = the summed probability of the BPE tokens that
-          start with it).
+          ProtGPT2, ProtGPT3 and ProGen3 are autoregressive and predict the next token (ProtGPT3 and
+          ProGen3: one token per residue; ProtGPT2: a residue's probability = the summed probability
+          of the BPE tokens that start with it).
   full    the whole sequence with that one residue masked (ESM-2 and ESM C only): more information
           than the LLMs get, an upper bound for these models.
 
@@ -21,6 +21,14 @@ left only (printed by every run): ProtGPT2 ubiquitin 65%, hemoglobin beta 37%; P
 
     pilot set: add data/sequences_pilot.tsv results/plm_pilot after the model list
     .venv-plm/bin/python scripts/probe/protein_lm.py esm2-650M:prefix,esm2-650M:full,esmc-600m:prefix,esmc-600m:full,esm3-open:prefix,esm3-open:full,protgpt2:prefix,protgpt3-1.3B:prefix,protgpt3-10B:prefix
+
+ProGen3 needs its own environment and a bf16 GPU (A100 or newer); there is no CPU path. It was run
+in Profluent's image ghcr.io/profluent-ai/progen3:v0.1.0 (torch 2.5.1, megablocks 0.7.0, flash-attn
+2.6.3), adding transformers 4.48.3, tokenizers 0.21.1 and huggingface_hub 0.29.3 (Profluent's lock
+file) and pandas, with github.com/Profluent-AI/progen3 at commit 5c8c88c. Sanity check (printed by
+every run): ProGen3-3B ubiquitin 98%, hemoglobin beta 86%.
+    apptainer exec --nv progen3_v0.1.0.sif env PYTHONPATH=<progen3>/src:<added packages> TRITON_LIBCUDA_PATH=/.singularity.d/libs python3.11 scripts/probe/protein_lm.py progen3-3B:prefix
+(Triton looks for libcuda.so where apptainer --nv does not put it, hence TRITON_LIBCUDA_PATH.)
 """
 
 import json
@@ -108,6 +116,34 @@ def protgpt3(size: str):
     return logp
 
 
+def progen3(size: str):
+    """Autoregressive mixture of experts, one token per residue (Profluent, 2025). The input is
+    <bos> 1 residues: ProGen3's own N-to-C encoding (ProGen3BatchPreparer.prepare_clm) without the
+    closing "2" and <eos>, exactly as its generation code builds a prompt."""
+    import triton
+    from flash_attn.ops.triton import layer_norm
+    from progen3.batch_preparer import ProGen3BatchPreparer
+    from progen3.modeling import ProGen3ForCausalLM
+
+    # ProGen3's RMSNorm is flash-attn's Triton kernel, which times six launch configs in each new
+    # process and keeps the fastest. They sum in different orders, and in this mixture-of-experts
+    # model the rounding changed ~2% of top residues between fresh runs. One fixed config instead.
+    layer_norm._layer_norm_fwd_1pass_kernel.configs = [triton.Config({}, num_warps=4)]
+    name = f"Profluent-Bio/progen3-{size.lower()}"
+    model = ProGen3ForCausalLM.from_pretrained(name, torch_dtype=torch.bfloat16).to(DEVICE).eval()
+    prep = ProGen3BatchPreparer()
+    ids = [prep.tokenizer.token_to_id(a) for a in AA]
+
+    def logp(seq: str, cut: int, mode: str):
+        assert mode == "prefix", "ProGen3 is scored from the residues before the cut only"
+        enc = prep.prepare_singleseq(seq[:cut], reverse_sequence=False)
+        n = enc["metadata"]["prefix_length"]  # drops the closing "2" and <eos>
+        x = {k: enc[k][:n].long().unsqueeze(0).to(DEVICE) for k in ("input_ids", "position_ids", "sequence_ids")}
+        return torch.log_softmax(model(**x, use_cache=False, return_dict=True).logits[0, -1, ids].float().cpu(), -1)
+
+    return logp
+
+
 def protgpt2():
     from transformers import AutoTokenizer, GPT2LMHeadModel
 
@@ -126,7 +162,8 @@ def protgpt2():
 
 
 LOADERS = {"esm2-650M": esm2, "esmc-600m": esmc, "esm3-open": esm3, "protgpt2": protgpt2,
-           "protgpt3-1.3B": lambda: protgpt3("1.3B"), "protgpt3-10B": lambda: protgpt3("10B")}
+           "protgpt3-1.3B": lambda: protgpt3("1.3B"), "protgpt3-10B": lambda: protgpt3("10B"),
+           "progen3-3B": lambda: progen3("3B")}
 SANITY = {"ubiquitin": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
           "hemoglobin beta": "MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"}
 

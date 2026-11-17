@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-NAMES = {"protgpt3-10B": "ProtGPT3-10B", "protgpt3-1.3B": "ProtGPT3-1.3B", "protgpt2": "ProtGPT2",
+NAMES = {"protgpt3-10B": "ProtGPT3-10B", "progen3-3B": "ProGen3-3B", "protgpt3-1.3B": "ProtGPT3-1.3B", "protgpt2": "ProtGPT2",
          "esmc-600m": "ESM C 600M", "esm3-open": "ESM3-open 1.4B", "esm2-650M": "ESM-2 650M"}
 size = pd.read_csv("data/confirm_sequences.tsv", sep="\t").groupby("pfam").family_proteins.first()
 rng = np.random.default_rng(2026)

@@ -94,7 +94,7 @@ save(fig, "fig1_protein")
 cmp = [{"name": LABEL[k], "d": c.loc[k].D_points, "lo": c.loc[k].D_ci_low, "hi": c.loc[k].D_ci_high, "kind": "LLM, chat prompt"}
        for k in ("claude-fable-5-2", "claude-opus-5-5")]
 for key, r in plm.iterrows():
-    kind = "reads left to right" if key.startswith("protgpt") else "masked model, reads both sides"
+    kind = "reads left to right" if key.startswith(("protgpt", "progen")) else "masked model, reads both sides"
     cmp.append({"name": r["name"], "d": r.d, "lo": r.lo, "hi": r.hi, "kind": kind})
 cmp = sorted(cmp, key=lambda r: -r["d"])
 fig, ax = plt.subplots(figsize=(4.6, 2.6))
@@ -260,14 +260,14 @@ order = wide.sort_values("well-known").index.tolist()
 fig, ax = plt.subplots(figsize=(4.6, 5.0))
 for y, m in enumerate(order):
     a, b = wide.loc[m, "well-known"], wide.loc[m, "obscure"]
-    col, mk, ms = color(m), ("D" if m.startswith("Prot") else "o"), (3.9 if m.startswith("Prot") else 4.2)
+    col, mk, ms = color(m), ("D" if m.startswith(("Prot", "ProGen")) else "o"), (3.9 if m.startswith(("Prot", "ProGen")) else 4.2)
     ax.plot([b, a], [y, y], color=LIGHT_GREY, lw=1.2, zorder=1)
     ax.plot(a, y, mk, ms=ms, color="white", mec=col, mew=1.1, zorder=2)
     ax.plot(b, y, mk, ms=ms, color=col, mec=col, zorder=3)
 guess = dict(zip(k.model, k.guess))
 ax.set_yticks(range(len(order)), [m + (" *" if guess.get(m) else "") for m in order])
 for tl in ax.get_yticklabels():
-    if tl.get_text().startswith("Prot"):
+    if tl.get_text().startswith(("Prot", "ProGen")):
         tl.set_color(PROTEIN_LM)
 for hero in ("Claude Opus 5.5", "Claude Fable 5.2"):
     ax.axhspan(order.index(hero) - 0.45, order.index(hero) + 0.45, color=ACCENT, alpha=0.09, lw=0, zorder=0)
