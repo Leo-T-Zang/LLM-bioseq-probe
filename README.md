@@ -12,7 +12,7 @@ Give a model the start of a protein and ask for the next amino acids.
 
 ![How the test works](figures/fig0_method.svg)
 
-- **Proteins nobody writes about.** 668 bacterial and archaeal proteins from 167
+- **Little-studied proteins.** 668 bacterial and archaeal proteins from 167
   "domain of unknown function" (DUF) Pfam families: no solved structure, almost no
   papers, and no other UniProt sequence within 90% identity. Reasoning and the
   literature cannot predict them; sequence data in training can.

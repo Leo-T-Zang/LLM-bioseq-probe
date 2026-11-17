@@ -82,7 +82,7 @@ ax.legend(handles=[Line2D([], [], marker="o", ls="", color=GREY, ms=4.2, label="
                    Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="LLM, raw continuation"),
                    ],
           loc="lower right", handletextpad=0.4)
-header(fig, ax, "Of 17 language models, only Claude Opus 5.5 predicts proteins nobody has studied",
+header(fig, ax, "Of 17 language models, only Claude Opus 5.5 predicts little-studied proteins",
        "668 bacterial and archaeal proteins from 167 unknown-function (DUF) families, no relative at ≥90% identity;\n"
        "points: mean over families, bars: 95% bootstrap CI. Raw continuation: completion endpoint or prefilled reply.\n"
        "Claude Sonnet 4.5 refused 97% of prefill requests (not shown).")
