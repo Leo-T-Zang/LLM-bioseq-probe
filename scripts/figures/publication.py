@@ -13,10 +13,12 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
+HEROES = {"Claude Opus 5.5", "Claude Fable 5.2"}
+
 from bioseq_probe.figstyle import ACCENT, ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, PROTEIN_LM, color, header, save
 
 LABEL = {"claude-opus-4-5-20251101": "Claude Opus 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-7": "Claude Opus 4.7", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
-         "claude-opus-5-5": "Claude Opus 5.5", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
+         "claude-opus-5-5": "Claude Opus 5.5", "claude-fable-5-2": "Claude Fable 5.2", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
          "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "gemini-3.5-flash": "Gemini 3.5 Flash", "gemini-3.8-flash": "Gemini 3.8 Flash",
          "gpt-6.1-sol": "GPT-6.1 Sol"}
 
@@ -25,12 +27,12 @@ def forest(ax, rows, y_of, xlabel):
     """rows: dicts with name, d, lo, hi, raw (bool)."""
     for r in rows:
         y, c = y_of[r["name"]], color(r["name"])
-        hero = r["name"] == "Claude Opus 5.5"
+        hero = r["name"] in HEROES
         ax.plot([r["lo"], r["hi"]], [y, y], color=c, lw=2.2 if hero else 1.4, solid_capstyle="round", zorder=4 if hero else 2)
         mk, ms = ("D", 3.8) if r.get("plm") else ("o", 6.0 if hero else 4.2)
         ax.plot(r["d"], y, mk, ms=ms, color=c, mfc="white" if r["raw"] else c, mec=c, mew=1.0, zorder=5 if hero else 3)
         ax.text(max(r["hi"], 0) + 0.8, y, f"{r['d']:+.1f}", va="center", fontsize=7.5 if hero else 6.3,
-                color=INK if r["name"] == "Claude Opus 5.5" else MUTED, fontweight="bold" if r["name"] == "Claude Opus 5.5" else "normal")
+                color=INK if hero else MUTED, fontweight="bold" if hero else "normal")
     ax.axvline(0, color=MUTED, lw=0.6, zorder=1)
     ax.set_xlabel(xlabel)
 
@@ -40,9 +42,9 @@ c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")
 raw = pd.read_csv("results/raw_summary.tsv", sep="\t")
 plm = pd.read_csv("results/plm_summary.tsv", sep="\t").query("mode == 'prefix'").set_index("model")
 groups = [
-    ("Anthropic", [("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
+    ("Anthropic", [("claude-fable-5-2", "chat"), ("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
                    ("claude-opus-4-6", "chat"), ("claude-opus-4-5-20251101", "chat")]),
-    ("OpenAI", [("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
+    ("OpenAI", [("gpt-6.1-sol", "chat"), ("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
     ("Google", [("gemini-4-carbon", "chat"), ("Gemini 2.5 Pro (raw)", "raw")]),
     ("Open-weight", [(n, "raw") for n in raw.name if n.endswith("(raw)") and not n.startswith(("Gemini", "Claude"))]),
 ]
@@ -70,35 +72,35 @@ fig, ax = plt.subplots(figsize=(4.6, 4.75))
 forest(ax, rows, y_of, "Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.set_yticks(list(y_of.values()), list(y_of.keys()))
 for t, m in zip(ax.get_yticklabels(), y_of):
-    if m == "Claude Opus 5.5":
+    if m in HEROES:
         t.set_fontweight("bold")
 for g, gy in ticks:
     ax.text(-0.02, gy - 0.25, g.upper(), transform=ax.get_yaxis_transform(), ha="right", va="center", fontsize=6, color=MUTED, fontweight="bold")
-yh = y_of["Claude Opus 5.5"]
-ax.axhspan(yh - 0.48, yh + 0.48, color=ACCENT, alpha=0.09, lw=0, zorder=0)
+for hero in HEROES:
+    ax.axhspan(y_of[hero] - 0.48, y_of[hero] + 0.48, color=ACCENT, alpha=0.09, lw=0, zorder=0)
 ax.set_ylim(min(y_of.values()) - 0.8, 0.5)
-ax.set_xlim(-3, 32)
+ax.set_xlim(-3, 52)
 ax.legend(handles=[Line2D([], [], marker="o", ls="", color=GREY, ms=4.2, label="LLM, chat prompt"),
                    Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="LLM, raw continuation"),
                    ],
           loc="lower right", handletextpad=0.4)
-header(fig, ax, "Of 17 language models, only Claude Opus 5.5 predicts little-studied proteins",
+header(fig, ax, "Of 19 language models, only the latest Claude models predict little-studied proteins",
        "668 bacterial and archaeal proteins from 167 unknown-function (DUF) families, no relative at ≥90% identity;\n"
        "points: mean over families, bars: 95% bootstrap CI. Raw continuation: completion endpoint or prefilled reply.\n"
        "Claude Sonnet 4.5 refused 97% of prefill requests (not shown).")
 save(fig, "fig1_protein")
 
 # Fig 6: Claude Opus 5.5 against protein language models, same input ---------------------------
-op = c.loc["claude-opus-5-5"]
-cmp = [{"name": "Claude Opus 5.5", "d": op.D_points, "lo": op.D_ci_low, "hi": op.D_ci_high, "kind": "LLM, chat prompt"}]
+cmp = [{"name": LABEL[k], "d": c.loc[k].D_points, "lo": c.loc[k].D_ci_low, "hi": c.loc[k].D_ci_high, "kind": "LLM, chat prompt"}
+       for k in ("claude-fable-5-2", "claude-opus-5-5")]
 for key, r in plm.iterrows():
     kind = "reads left to right" if key.startswith("protgpt") else "masked model, reads both sides"
     cmp.append({"name": r["name"], "d": r.d, "lo": r.lo, "hi": r.hi, "kind": kind})
 cmp = sorted(cmp, key=lambda r: -r["d"])
 fig, ax = plt.subplots(figsize=(4.6, 2.6))
 for i, r in enumerate(cmp):
-    y, hero = -i, r["name"] == "Claude Opus 5.5"
-    col = ACCENT if hero else PROTEIN_LM
+    y, hero = -i, r["name"] in HEROES
+    col = color(r["name"]) if hero else PROTEIN_LM
     if hero:
         ax.axhspan(y - 0.45, y + 0.45, color=ACCENT, alpha=0.09, lw=0, zorder=0)
     ax.plot([r["lo"], r["hi"]], [y, y], color=col, lw=2.2 if hero else 1.4, solid_capstyle="round", zorder=2)
@@ -108,15 +110,15 @@ for i, r in enumerate(cmp):
             fontweight="bold" if hero else "normal")
 ax.set_yticks([-i for i in range(len(cmp))], [r["name"] for r in cmp])
 for t in ax.get_yticklabels():
-    if t.get_text() == "Claude Opus 5.5":
+    if t.get_text() in HEROES:
         t.set_fontweight("bold")
 ax.axvline(0, color=MUTED, lw=0.6, zorder=1)
-ax.set_xlim(-1, 35)
+ax.set_xlim(-1, 52)
 ax.set_xlabel("Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.legend(handles=[Line2D([], [], marker="D", ls="", color=PROTEIN_LM, ms=4, label="protein LM, reads left to right"),
                    Line2D([], [], marker="D", ls="", color=PROTEIN_LM, mfc="white", mew=1.0, ms=4, label="protein LM, masked (normally sees both sides)")],
           loc="lower right", handletextpad=0.4)
-header(fig, ax, "Claude Opus 5.5 matches ProtGPT3-10B, the largest open protein language model",
+header(fig, ax, "The latest Claude models match or beat the largest open protein language model",
        "Same 668 proteins and same input for every model: the residues before the cut. Points: mean over families,\n"
        "bars: 95% bootstrap CI. ESM-2 shown the residues on both sides of the cut reaches +34.6 (Appendix C).")
 save(fig, "fig6_protein_lm")
@@ -124,8 +126,8 @@ save(fig, "fig6_protein_lm")
 # Fig 7 and 8: every position of the 10 residues asked for -------------------------------------
 from bioseq_probe.probe import parse  # noqa: E402
 
-CHAT = ["claude-opus-5-5", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
-        "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"]
+CHAT = ["claude-fable-5-2", "claude-opus-5-5", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
+        "gpt-6.1-sol", "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"]
 RAW = {"gemini-2.5-pro": "Gemini 2.5 Pro", "deepseek-v4p1-flash": "DeepSeek V4.1 Flash", "qwen3p8-2p4t-a95b": "Qwen 3.8",
        "kimi-k3p1-pro": "Kimi K3.1 Pro", "glm-5p3": "GLM-5.3", "minimax-m3": "MiniMax M3", "gpt-oss-120b": "gpt-oss-120b",
        "nemotron-3-ultra-nvfp4": "Nemotron 3 Ultra"}
@@ -158,7 +160,7 @@ ORDER = CHAT + list(RAW)
 
 
 def style(model):
-    hero = model == "claude-opus-5-5"
+    hero = LABEL[model] in HEROES
     return dict(color=color(LABEL[model]), lw=1.8 if hero else (0.8 if model in RAW else 1.0), ms=3.2 if hero else 2.2,
                 mfc="white" if model in RAW else color(LABEL[model]), zorder=3 if hero else (1 if model in RAW else 2))
 
@@ -169,24 +171,24 @@ def legend_handles(models):
     return hs
 
 
-fig, ax = plt.subplots(figsize=(4.6, 3.3))
+fig, ax = plt.subplots(figsize=(4.0, 3.3))
 for model in ORDER[::-1]:
     r = summ[summ.model == model].sort_values("position")
-    if model == "claude-opus-5-5":
-        ax.fill_between(r.position, r.lo, r.hi, color=ACCENT, alpha=0.15, lw=0)
+    if LABEL[model] in HEROES:
+        ax.fill_between(r.position, r.lo, r.hi, color=color(LABEL[model]), alpha=0.12, lw=0)
     ax.plot(r.position, r.d, "-o", **style(model))
 ax.axhline(0, color=MUTED, lw=0.6)
 ax.set_xticks(range(1, 11))
-ax.set_ylim(-6, 32)
+ax.set_ylim(-6, 52)
 ax.set_xlabel("Position in the reply (1 = the next amino acid)")
 ax.set_ylabel("Real minus shuffled (points)")
 ax.grid(axis="y", color=GRID, lw=0.5)
 ax.grid(axis="x", visible=False)
-ax.legend(handles=legend_handles(CHAT + ["gemini-2.5-pro"]), loc="upper right", ncol=2, fontsize=5.6, handletextpad=0.3,
-          labelspacing=0.3, columnspacing=0.8)
-header(fig, ax, "Claude Opus 5.5 keeps most of its signal across all 10 residues it writes",
+ax.legend(handles=legend_handles(CHAT + ["gemini-2.5-pro"]), loc="center left", bbox_to_anchor=(1.01, 0.5), fontsize=5.8,
+          handletextpad=0.3, labelspacing=0.32)
+header(fig, ax, "The latest Claude models keep their signal across all 10 residues they write",
        "668 little-studied proteins; each position scored on its own (earlier positions need not be right); mean over 167 families,\n"
-       "band: 95% bootstrap CI for Opus 5.5. Hollow points: raw continuation of the FASTA text (Gemini 2.5 Pro, open-weight models).")
+       "bands: 95% bootstrap CI for Fable 5.2 and Opus 5.5. Hollow points: raw continuation of the FASTA text (Gemini 2.5 Pro, open-weight models).")
 save(fig, "fig7_by_position")
 
 fig, ax = plt.subplots(figsize=(4.6, 3.3))
@@ -197,14 +199,14 @@ hs = legend_handles(CHAT + ["gemini-2.5-pro"])
 hs.append(Line2D([], [], marker="o", ls="--", color=ACCENT, lw=1.2, ms=2.8, mfc="white", label="Claude Opus 5.5, shuffled proteins"))
 ax.legend(handles=hs, loc="upper right", ncol=2, fontsize=5.6, handletextpad=0.3, labelspacing=0.3, columnspacing=0.8)
 ax.set_xticks(range(1, 11))
-ax.set_ylim(-1.5, 38)
+ax.set_ylim(-1.5, 58)
 ax.set_xlabel("Number of residues, starting from the next one")
 ax.set_ylabel("All of them right (%)")
 ax.grid(axis="y", color=GRID, lw=0.5)
 ax.grid(axis="x", visible=False)
-header(fig, ax, "Claude Opus 5.5 writes runs of correct residues; on shuffled proteins it cannot",
-       "668 little-studied proteins. Share of replies whose first k residues are all right. Opus 5.5 on real proteins:\n"
-       "3.0% for 5 in a row, 0.4% for all 10; on shuffled proteins, one run of 3 and none longer. Other models' shuffled runs look the same.\n"
+header(fig, ax, "The latest Claude models write runs of correct residues; on shuffled proteins they cannot",
+       "668 little-studied proteins. Share of replies whose first k residues are all right. On real proteins, Fable 5.2 gets\n"
+       "11% to 5 in a row and 2.6% to all 10, Opus 5.5 3.0% and 0.4%; on shuffled proteins neither gets past 3.\n"
        "Hollow points: raw continuation of the FASTA text (Gemini 2.5 Pro, open-weight models).")
 save(fig, "fig8_runs")
 
@@ -326,20 +328,20 @@ def by_bin(g, rng=np.random.default_rng(0)):
 fig, ax = plt.subplots(figsize=(4.6, 3.0))
 xs = np.arange(len(bins))
 ends = []
-order = ["gpt-5.5", "gpt-6-astra", "gemini-4-carbon", "claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8",
-         "claude-opus-5", "claude-opus-5-5"]
+order = ["gpt-5.5", "gpt-6-astra", "gpt-6.1-sol", "gemini-4-carbon", "claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8",
+         "claude-opus-5", "claude-opus-5-5", "claude-fable-5-2"]
 for m in order:
     g = family_gaps(m)
     r = by_bin(g)
-    col, top = color(LABEL[m]), m == "claude-opus-5-5"
-    if top:
+    col, top = color(LABEL[m]), m in ("claude-opus-5-5", "claude-fable-5-2")
+    if m == "claude-opus-5-5":
         ax.fill_between(xs, r[:, 1], r[:, 2], color=col, alpha=0.15, lw=0)
     ax.plot(xs, r[:, 0], "-o", color=col, lw=1.6 if top else 1.0, ms=3.6 if top else 2.8, zorder=3 if top else 2)
     ends.append([r[-1, 0], m])
-    if top:
+    if m == "claude-opus-5-5":
         z = by_bin(g[papers.reindex(g.index) == 0])
         ax.plot(xs, z[:, 0], "--", color=col, lw=1.0, zorder=3)
-        ax.text(xs[-1] - 0.06, z[-1, 0] + 0.6, "zero-paper families", fontsize=6, color=ACCENT_TEXT, ha="right", va="bottom")
+        ax.text(xs[2] + 0.08, z[2, 0] - 1.2, "Opus 5.5, zero-paper families", fontsize=6, color=ACCENT_TEXT, ha="left", va="top")
 LABEL["protgpt3-10B"] = "ProtGPT3-10B"
 r = by_bin(family_gaps("protgpt3-10B", "results/plm_confirm/protgpt3-10B__prefix.jsonl"))
 ax.plot(xs, r[:, 0], "-D", color=PROTEIN_LM, lw=1.6, ms=3.6, zorder=4)
@@ -356,19 +358,19 @@ for i in range(1, len(ends) + 1):  # ... and centre each pushed-apart run on its
             e[0] += shift
         start = i
 for y, m in ends:
-    top = m in ("claude-opus-5-5", "protgpt3-10B")
+    top = m in ("claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B")
     ax.text(xs[-1] + 0.12, y, LABEL[m], va="center", fontsize=6.2, color=(PROTEIN_LM if m == "protgpt3-10B" else INK) if top else MUTED,
             fontweight="bold" if top else "normal",
             bbox={"fc": "white", "ec": "none", "pad": 0.4})
 ax.axhline(0, color=MUTED, lw=0.6)
-ax.set_ylim(-9.5, 47)
+ax.set_ylim(-9.5, 56)
 ax.set_xticks(xs, ["300–1k", "1k–3k", "3k–10k", ">10k"])
 ax.set_xlim(-0.25, len(bins) - 1 + 1.25)
 ax.set_xlabel("Proteins in the family (Pfam)")
 ax.set_ylabel("Real minus shuffled (points)")
 ax.grid(axis="y", color=GRID, lw=0.5)
 ax.grid(axis="x", visible=False)
-header(fig, ax, "Claude Opus 5.5 tracks family size like a protein language model",
+header(fig, ax, "Claude Opus 5.5 tracks family size like a protein language model; Fable 5.2 is high everywhere",
        "Next amino acid on the 167 DUF families of Fig. 1, by family size (50, 50, 50, 17 families); mean over families,\n"
        "band: 95% bootstrap CI for Opus 5.5. Dashed: Opus 5.5 on the 128 families with no Europe PMC hit.\n"
        "Purple diamonds: ProtGPT3-10B, a protein language model, given the same residues before the cut.")

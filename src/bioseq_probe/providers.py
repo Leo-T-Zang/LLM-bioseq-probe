@@ -42,6 +42,8 @@ MODELS: dict[str, tuple[str, dict]] = {
     "minimax-m3": ("fireworks", {"reasoning_effort": "none"}),
     "gpt-oss-120b": ("fireworks", {"reasoning_effort": "low"}),  # thinking-only; lowest
     "nemotron-3-ultra-nvfp4": ("fireworks", {"reasoning_effort": "none"}),
+    # no direct route: the Anthropic API serves Fable only to workspaces with data retention enabled
+    "claude-fable-5-2": ("openrouter", {"id": "anthropic/claude-fable-5.2", "reasoning": {"effort": "low"}}),
 }
 
 
@@ -99,6 +101,19 @@ def _fireworks(model, prompt, max_tokens, cfg):
     return Reply(c.message.content or "", c.finish_reason, usage=r.usage.model_dump() if r.usage else {})
 
 
+def _openrouter(model, prompt, max_tokens, cfg):
+    cfg = dict(cfg)
+    client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=os.environ["OPENROUTER_API_KEY"])
+    r = client.chat.completions.create(
+        model=cfg.pop("id"),
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=max_tokens,
+        extra_body=cfg,
+    )
+    c = r.choices[0]
+    return Reply(c.message.content or "", c.finish_reason, usage=r.usage.model_dump() if r.usage else {})
+
+
 def _gemini(model, prompt, max_tokens, cfg):
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"], http_options=types.HttpOptions(api_version="v1beta"))
     conf = types.GenerateContentConfig(
@@ -116,4 +131,5 @@ _CALLS = {
     "openai_responses": _openai_responses,
     "gemini": _gemini,
     "fireworks": _fireworks,
+    "openrouter": _openrouter,
 }

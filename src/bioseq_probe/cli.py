@@ -17,7 +17,7 @@ import pandas as pd
 from bioseq_probe.probe import K, parse, prompt, score, shuffled
 from bioseq_probe.providers import MODELS, call
 
-PROVIDERS = ("anthropic", "openai_chat", "openai_responses", "gemini", "fireworks")
+PROVIDERS = ("anthropic", "openai_chat", "openai_responses", "gemini", "fireworks", "openrouter")
 
 
 def probes(seqs: pd.DataFrame) -> list[dict]:

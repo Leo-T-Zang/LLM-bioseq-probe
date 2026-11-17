@@ -1,5 +1,11 @@
 # Findings
 
+**Claude Fable 5.2** (run through OpenRouter; Anthropic's API serves it only to workspaces that retain
+data): +45.1 points (95% CI 42.5 to 47.6), 54.1% vs 9.0%, positive in 98% of families, +45.9 in the
+families with no papers, flat across family size (rho 0.00). It matches Opus 5.5 and ProtGPT3-10B on
+which families are easy (Spearman 0.63 and 0.57) and reproduces on a repeat of 400 questions (57.5%
+vs 57.5% real). **GPT-6.1 Sol**: +0.6 (-0.7 to 2.0).
+
 Run through each provider's API in November 2026. Figures: `figures/fig0_method` to `fig5_family_size`.
 
 ## Claude Opus 5.5 was trained on protein sequence data

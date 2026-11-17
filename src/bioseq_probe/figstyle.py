@@ -18,11 +18,12 @@ LIGHT_GREY = "#D3D7DF"
 ACCENT = "#D97757"  # Anthropic
 ACCENT_TEXT = "#B4532F"  # the same hue, dark enough for text
 OPENAI = "#4B4B55"
+GPT = {"GPT-6.1 Sol": "#2C2C33", "GPT-6 Astra": OPENAI, "GPT-5.5": "#7C7C87"}  # newer darker
 GOOGLE = "#4285F4"
 PROTEIN_LM = "#9B59B6"  # protein language models, drawn as diamonds
 CLAUDE = {  # older generations lighter
     "Claude Sonnet 4.5": "#F6DFD4", "Claude Opus 4.5": "#F3D3C4", "Claude Opus 4.6": "#EFC1AB",
-    "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT,
+    "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT, "Claude Fable 5.2": "#9C3A1C",
 }
 
 for path in Path("/usr/share/fonts").rglob("LiberationSans-*.ttf"):
@@ -43,7 +44,7 @@ plt.rcParams.update({
 def color(model: str) -> str:
     """By display name: Claude by generation, GPT charcoal, Gemini blue, open-weight grey."""
     if model.startswith("GPT-"):
-        return OPENAI
+        return GPT.get(model, OPENAI)
     if model.startswith("Gemini"):
         return GOOGLE
     if model.startswith(("ProtGPT", "ESM")):

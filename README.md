@@ -1,8 +1,8 @@
 # LLM-bioseq-probe
 
 Is protein or DNA sequence data in a language model's training data? This repo tests it
-from the outside, through each model's API, and finds a clear yes for **Claude Opus 5.5**
-and no clear sign for any other model we tested.
+from the outside, through each model's API, and finds a clear yes for the latest Claude models,
+**Claude Fable 5.2** and **Claude Opus 5.5**, and no clear sign for any other model we tested.
 
 ![Main result](figures/fig1_protein.png)
 
@@ -26,11 +26,12 @@ Give a model the start of a protein and ask for the next amino acids.
 
 | | Next amino acid, real vs shuffled | Gap, points (95% CI) |
 |---|---|---|
+| Claude Fable 5.2 (through OpenRouter) | 54.1% vs 9.0% | **+45.1 (42.5 to 47.6)** |
 | Claude Opus 5.5 | 34.9% vs 7.5% | **+27.4 (24.7 to 30.0)** |
 | Claude Opus 5 | 17.5% vs 7.7% | +9.7 (7.3 to 12.2) |
 | Claude Opus 4.8 | 15.5% vs 7.8% | +7.7 (5.5 to 9.8) |
 | Claude Opus 4.7 | 16.1% vs 7.2% | +8.9 (6.9 to 11.1) |
-| Claude Opus 4.5 and 4.6, GPT-5.5, GPT-6 Astra, Gemini 4 Carbon | | +0.9 to +2.9 |
+| Claude Opus 4.5 and 4.6, GPT-5.5, GPT-6 Astra, GPT-6.1 Sol, Gemini 4 Carbon | | +0.6 to +2.9 |
 | Gemini 2.5 Pro and 7 open-weight models, raw next-token continuation | | -0.0 to +1.9 |
 
 - The Opus 5.5 gap grows with family size (Spearman 0.27, p = 0.0002), including in the
