@@ -108,6 +108,25 @@ def protgpt3(size: str):
     return logp
 
 
+def progen3(size: str):
+    """Autoregressive mixture-of-experts, one token per residue; "<bos>1" marks N-to-C reading.
+    Needs the progen3 package (github.com/Profluent-AI/progen3), flash-attn and megablocks."""
+    from progen3.modeling import ProGen3ForCausalLM
+    from progen3.tokenizer import get_tokenizer
+
+    tok = get_tokenizer()
+    model = ProGen3ForCausalLM.from_pretrained(f"Profluent-Bio/progen3-{size}", torch_dtype=torch.bfloat16).to(DEVICE).eval()
+    ids = [tok.token_to_id(a) for a in AA]
+
+    def logp(seq: str, cut: int, mode: str):
+        x = torch.tensor([tok.encode(f"<bos>1{seq[:cut]}").ids], device=DEVICE)
+        pos = torch.arange(x.shape[1], device=DEVICE).unsqueeze(0)
+        out = model(input_ids=x, position_ids=pos, sequence_ids=torch.zeros_like(x), return_dict=True)
+        return torch.log_softmax(out.logits[0, -1, ids].float().cpu(), -1)
+
+    return logp
+
+
 def protgpt2():
     from transformers import AutoTokenizer, GPT2LMHeadModel
 
@@ -126,7 +145,8 @@ def protgpt2():
 
 
 LOADERS = {"esm2-650M": esm2, "esmc-600m": esmc, "esm3-open": esm3, "protgpt2": protgpt2,
-           "protgpt3-1.3B": lambda: protgpt3("1.3B"), "protgpt3-10B": lambda: protgpt3("10B")}
+           "protgpt3-1.3B": lambda: protgpt3("1.3B"), "protgpt3-10B": lambda: protgpt3("10B"),
+           "progen3-3b": lambda: progen3("3b")}
 SANITY = {"ubiquitin": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
           "hemoglobin beta": "MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"}
 

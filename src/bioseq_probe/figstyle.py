@@ -47,7 +47,7 @@ def color(model: str) -> str:
         return GPT.get(model, OPENAI)
     if model.startswith("Gemini"):
         return GOOGLE
-    if model.startswith(("ProtGPT", "ESM")):
+    if model.startswith(("ProtGPT", "ProGen", "ESM")):
         return PROTEIN_LM
     return CLAUDE.get(model, GREY)
 

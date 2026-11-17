@@ -1,9 +1,10 @@
 """The test as one picture: figures/fig0_method.svg and fig0_method_mobile.svg. Free.
 
 Two rows of residues: the end of a real protein, and the same residues shuffled (thin lines
-show where each one went). The model fills in the next residue; the accuracies are the main
-set's (results/confirm_tests.tsv). The letters are the residues before cut 109 of A0ABX2F111,
-where Claude Opus 5.5 answered E (right); the shuffled row is schematic. Colours are CSS
+show where each one went). The model writes the next 10 residues and the first is scored; the
+accuracies are the main set's (results/confirm_tests.tsv). The letters are the residues before
+cut 109 of A0ABX2F111, and the replies are Claude Opus 5.5's on that cut, real and shuffled
+(ENNLSIANMD against the true ENNLSQANMD); the shuffled row's letters are schematic. Colours are CSS
 variables with fallbacks, so a page can restyle them.
 """
 
@@ -15,6 +16,9 @@ ACC, CUT = "A0ABX2F111", 109
 seq = pd.read_csv("data/confirm_sequences.tsv", sep="\t").set_index("accession").loc[ACC, "sequence"]
 assert seq[CUT] == "E"
 t = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model").loc["claude-opus-5-5"]
+REPLY = {d["condition"]: d["pred"] for d in pd.read_json("results/confirm/claude-opus-5-5.jsonl", lines=True)
+         .query("accession == @ACC and cut == @CUT").to_dict("records")}
+assert REPLY["real"][0] == "E" and REPLY["shuffled"][0] == "R"
 REAL, SHUF, GAP = t.real_acc * 100, t.shuffled_acc * 100, t.D_points
 
 SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
@@ -64,7 +68,8 @@ def figure(n, compact=False, step=30, r=12.5):
     out.append(text(24, y1 + 5, "Real", 15, "ink", 650))
     out.append(text(24, y2 + 5, "Shuffled", 15, "ink", 650))
     cx, chip = q + r + 14, 82
-    for y, ans, ok, acc in ((y1, "E", True, REAL), (y2, "R", False, SHUF)):
+    for y, cond, ok, acc in ((y1, "real", True, REAL), (y2, "shuffled", False, SHUF)):
+        ans = REPLY[cond][0]
         if compact:
             out.append(arrow(cx, cx + 62, y))
             out.append(text(cx + 30, y - 8, "Opus 5.5", 11.5, "muted", 600, "middle"))
@@ -79,8 +84,14 @@ def figure(n, compact=False, step=30, r=12.5):
         mark = "good" if ok else "bad"
         out.append(bead(bx, y, ans, r, mark, color=mark, weight=700))
         out.append(text(bx + r + 1, y - r + 3, "✓" if ok else "✗", 12, mark, 700))
-        out.append(text(bx + r + 18, y + 7.5, f"{acc:.1f}%", 21, "ink" if ok else "muted", 700))
-    gx = bx + r + 96
+        tail = REPLY[cond][1:] if not compact else REPLY[cond][1:3] + "…"  # the rest of the 10, not scored
+        tx = bx + r + 12
+        out.append(text(tx, y + 4.5, tail, 11.5, "muted", 400, font=MONO))
+        px = tx + len(tail) * 7.0 + 14
+        out.append(text(px, y + 7.5, f"{acc:.1f}%", 21, "ink" if ok else "muted", 700))
+        if ok:
+            out.append(text(bx - r, y + r + 17, "writes 10, the first is scored", 10.5, "muted", 500))
+    gx = px + 78
     out.append(f'<path d="M{gx - 7:.1f},{y1} H{gx:.1f} V{y2} H{gx - 7:.1f}" style="fill:none;stroke:{v("accent")};stroke-width:1.4"/>')
     out.append(text(gx + 10, (y1 + y2) / 2 + 3, f"+{GAP:.1f}", 21, "accent-text", 700))
     out.append(text(gx + 10, (y1 + y2) / 2 + 20, "points", 12, "accent-text", 500))

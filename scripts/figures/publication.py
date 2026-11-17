@@ -94,7 +94,7 @@ save(fig, "fig1_protein")
 cmp = [{"name": LABEL[k], "d": c.loc[k].D_points, "lo": c.loc[k].D_ci_low, "hi": c.loc[k].D_ci_high, "kind": "LLM, chat prompt"}
        for k in ("claude-fable-5-2", "claude-opus-5-5")]
 for key, r in plm.iterrows():
-    kind = "reads left to right" if key.startswith("protgpt") else "masked model, reads both sides"
+    kind = "reads left to right" if key.startswith(("protgpt", "progen")) else "masked model, reads both sides"
     cmp.append({"name": r["name"], "d": r.d, "lo": r.lo, "hi": r.hi, "kind": kind})
 cmp = sorted(cmp, key=lambda r: -r["d"])
 fig, ax = plt.subplots(figsize=(4.6, 2.6))
@@ -118,7 +118,7 @@ ax.set_xlabel("Next amino acid: real minus shuffled accuracy (percentage points)
 ax.legend(handles=[Line2D([], [], marker="D", ls="", color=PROTEIN_LM, ms=4, label="protein LM, reads left to right"),
                    Line2D([], [], marker="D", ls="", color=PROTEIN_LM, mfc="white", mew=1.0, ms=4, label="protein LM, masked (normally sees both sides)")],
           loc="lower right", handletextpad=0.4)
-header(fig, ax, "The latest Claude models match or beat the largest open protein language model",
+header(fig, ax, "Claude Fable 5.2 beats every open protein language model we ran",
        "Same 668 proteins and same input for every model: the residues before the cut. Points: mean over families,\n"
        "bars: 95% bootstrap CI. ESM-2 shown the residues on both sides of the cut reaches +34.6 (Appendix C).")
 save(fig, "fig6_protein_lm")
