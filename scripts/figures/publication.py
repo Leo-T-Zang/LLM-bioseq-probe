@@ -339,8 +339,9 @@ def by_bin(g, rng=np.random.default_rng(0)):
     return np.array(out)
 
 
-LABEL["protgpt3-10B"] = "ProtGPT3-10B"
-HERO5 = ("claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B")
+LABEL.update({"protgpt3-10B": "ProtGPT3-10B", "progen3-3b": "ProGen3-3B"})
+PLM5 = {"protgpt3-10B": PROTEIN_LM, "progen3-3b": "#C39BD3"}  # protein language models, purple diamonds
+HERO5 = ("claude-opus-5-5", "claude-fable-5-2", *PLM5)
 
 
 def family_size_figure(models, name, title, subtitle, size, scale=1.0, faint=(), background=(), background_label=""):
@@ -356,9 +357,9 @@ def family_size_figure(models, name, title, subtitle, size, scale=1.0, faint=(),
         LABEL[background_label] = background_label
         ends.append([float(np.nanmean(bg_ends)), background_label])
     for m in models:
-        if m == "protgpt3-10B":
-            r = by_bin(family_gaps("results/plm_confirm/protgpt3-10B__prefix.jsonl", "results/plm_small/protgpt3-10B__prefix.jsonl"))
-            ax.plot(xs, r[:, 0], "-D", color=PROTEIN_LM, lw=1.6 * scale, ms=3.6 * scale, zorder=4)
+        if m in PLM5:
+            r = by_bin(family_gaps(f"results/plm_confirm/{m}__prefix.jsonl", f"results/plm_small/{m}__prefix.jsonl"))
+            ax.plot(xs, r[:, 0], "-D", color=PLM5[m], lw=1.6 * scale, ms=3.6 * scale, zorder=4)
         else:
             r = by_bin(family_gaps(f"results/confirm/{m}.jsonl", f"results/small_families/{m}.jsonl"))
             col, top = color(LABEL[m]), m in HERO5
@@ -384,7 +385,7 @@ def family_size_figure(models, name, title, subtitle, size, scale=1.0, faint=(),
             start = i
     for y, m in ends:
         top = m in HERO5
-        ax.text(xs[-1] + 0.15, y, LABEL[m], va="center", fontsize=6.0 * (scale if top else 1.0), color=(PROTEIN_LM if m == "protgpt3-10B" else INK) if top else MUTED,
+        ax.text(xs[-1] + 0.15, y, LABEL[m], va="center", fontsize=6.0 * (scale if top else 1.0), color=(PROTEIN_LM if m in PLM5 else INK) if top else MUTED,
                 fontweight="bold" if top else "normal", bbox={"fc": "white", "ec": "none", "pad": 0.4})
     ax.axhline(0, color=MUTED, lw=0.6)
     ax.axvline(2.5, color=LIGHT_GREY, lw=0.8, ls=":", zorder=0)
@@ -402,9 +403,9 @@ def family_size_figure(models, name, title, subtitle, size, scale=1.0, faint=(),
 
 
 SETS5 = ("Next amino acid on 257 DUF families: 90 from 20 to 300 proteins, 30 per bin, and the 167 of Fig. 1; mean over families,\n"
-         "bands: 95% bootstrap CI for Fable 5.2 and Opus 5.5. Purple diamonds: ProtGPT3-10B, a protein language model, on the same residues.")
+         "bands: 95% bootstrap CI for Fable 5.2 and Opus 5.5. Purple diamonds: protein language models (ProtGPT3-10B, ProGen3-3B) on the same residues.")
 EARLIER = ("claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-fable-5-1")
-family_size_figure([*EARLIER, "claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B"], "fig5_family_size",
+family_size_figure([*EARLIER, "claude-opus-5-5", "claude-fable-5-2", *PLM5], "fig5_family_size",
                    "The bigger the protein family, the better the latest Claude models, as for a protein language model",
                    SETS5 + "\nThin lines: earlier Claude models; grey: GPT-6.1 Sol, GPT-6 Astra, GPT-5.5 and Gemini 4 Carbon.", (5.2, 3.4), 1.25,
                    faint=EARLIER, background=("gpt-6.1-sol", "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"), background_label="GPT and Gemini")

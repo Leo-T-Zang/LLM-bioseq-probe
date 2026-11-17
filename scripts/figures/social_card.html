@@ -1,59 +1,47 @@
 <!doctype html>
-<!-- The blog post's link preview, 1200x630. Values: results/confirm_tests.tsv (Claude, GPT, Gemini),
-     results/plm_summary.tsv (ProGen3-3B), Fig. 1 (DeepSeek V4.1 Flash, raw continuation, shown as DeepSeek V4.1).
-     Render: node scripts/figures/render_card.js (writes figures/social_card.png). -->
+<!-- The blog post's link preview, 1200x630: no text (the card shows the title), one drawing in the
+     style of Anthropic's research previews. A protein chain of beads; the next one, in Claude orange,
+     is the residue the model predicts. Render: node scripts/figures/render_card.js -> figures/social_card.png -->
 <html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&family=Inter:wght@400;500;600&display=swap">
 <style>
-  :root { --ink:#1f1e1d; --muted:#6f6b64; --line:#e3ded3; --bg:#f5f3ee; --accent:#d97757; }
-  * { box-sizing:border-box; margin:0; }
-  body { width:1200px; height:630px; background:var(--bg); font-family:Inter, sans-serif; color:var(--ink); }
-  .card { position:relative; width:1200px; height:630px; padding:64px 64px 56px; display:grid; grid-template-columns:600px 1fr; column-gap:48px; }
-  .eyebrow { font-size:17px; font-weight:500; color:var(--accent); letter-spacing:0.02em; margin-bottom:22px; }
-  h1 { font-family:"Source Serif 4", Georgia, serif; font-weight:600; font-size:50px; line-height:1.1; letter-spacing:-0.015em; }
-  .sub { margin-top:22px; font-size:20px; line-height:1.45; color:var(--muted); }
-  .beads { position:absolute; left:64px; bottom:96px; display:flex; gap:8px; }
-  .bead { width:34px; height:34px; border-radius:50%; border:1.6px solid #c9c3b8; background:#fff; display:flex; align-items:center; justify-content:center;
-          font:500 15px "SFMono-Regular", Menlo, Consolas, monospace; color:var(--ink); }
-  .bead.q { border:1.8px dashed var(--accent); background:#fbeee8; color:#b4532f; font-weight:700; }
-  .byline { position:absolute; left:64px; bottom:48px; font-size:16px; color:var(--muted); }
-  .chart { align-self:center; }
-  .axis-note { font-size:15px; color:var(--muted); margin-bottom:18px; }
-  .row { display:grid; grid-template-columns:184px 1fr; align-items:center; height:52px; }
-  .name { font-size:17px; font-weight:500; text-align:right; padding-right:16px; white-space:nowrap; }
-  .name small { display:block; font-size:12.5px; font-weight:400; color:var(--muted); }
-  .track { position:relative; height:100%; border-left:1.5px solid #8d877c; }
-  .bar { position:absolute; left:0; top:13px; height:26px; border-radius:0 6px 6px 0; }
-  .val { position:absolute; top:13px; line-height:26px; font-size:17px; font-weight:600; padding-left:10px; }
-  .sep { height:14px; }
+  * { margin:0; } body { width:1200px; height:630px; background:#e6dccd; overflow:hidden; }
+  text { font-family:"Inter", "Helvetica Neue", Arial, sans-serif; font-weight:700; }
 </style></head>
-<body><div class="card">
-  <div>
-    <div class="eyebrow">xinmingtu.cn · research note</div>
-    <h1>Claude was trained on protein sequences at scale</h1>
-    <p class="sub">Given the start of a little-studied protein, the latest Claude models predict the next amino acid. Other frontier models show no sign of it.</p>
-  </div>
-  <div class="chart" id="chart">
-    <div class="axis-note">Next amino acid, real minus shuffled accuracy (points)</div>
-  </div>
-  <div class="beads" id="beads"></div>
-  <div class="byline">Xinming Tu · Leo Tianlai Chen</div>
-</div>
+<body>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="hand" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <g id="chain" filter="url(#hand)" stroke="#141413" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></g>
+</svg>
 <script>
-  const rows = [
-    ["Claude Fable 5.2", "", 45.1, "#9c3a1c"], ["Claude Opus 5.5", "", 27.4, "#d97757"], null,
-    ["ProGen3-3B", "protein language model", 32.5, "#9b59b6"], null,
-    ["GPT-6.1 Sol", "", 0.6, "#2c2c33"], ["Gemini 4 Carbon", "", 0.9, "#4285f4"], ["DeepSeek V4.1", "", 1.4, "#a3aab8"],
-  ];
-  const max = 50, width = 175, chart = document.getElementById("chart");
-  for (const r of rows) {
-    if (!r) { chart.insertAdjacentHTML("beforeend", '<div class="sep"></div>'); continue; }
-    const [name, note, v, col] = r, w = Math.max(3, v / max * width);
-    chart.insertAdjacentHTML("beforeend", `<div class="row"><div class="name">${name}${note ? `<small>${note}</small>` : ""}</div>
-      <div class="track"><div class="bar" style="width:${w}px;background:${col}"></div>
-      <div class="val" style="left:${w}px;color:${v > 5 ? "var(--ink)" : "var(--muted)"}">+${v.toFixed(1)}</div></div></div>`);
+  // a wavy backbone through bead centres, coming in from the left edge
+  const pts = [[-60, 360], [80, 395], [195, 300], [305, 375], [420, 285], [530, 360], [640, 265], [750, 340], [860, 250], [1010, 290]];
+  const letters = ["", "M", "K", "L", "V", "A", "W", "S", "V", "?"];
+  const g = document.getElementById("chain"), NS = "http://www.w3.org/2000/svg";
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], mx = (x0 + x1) / 2;
+    d += ` C${mx},${y0} ${mx},${y1} ${x1},${y1}`;
   }
-  for (const a of "AIPEVAWSV") document.getElementById("beads").insertAdjacentHTML("beforeend", `<div class="bead">${a}</div>`);
-  document.getElementById("beads").insertAdjacentHTML("beforeend", '<div class="bead q">?</div>');
+  const path = document.createElementNS(NS, "path");
+  path.setAttribute("d", d); path.setAttribute("fill", "none");
+  g.appendChild(path);
+  const fills = ["#f4efe6", "#f4efe6", "#f4efe6", "#f4efe6", "#f4efe6", "#f4efe6", "#f4efe6", "#f4efe6"];
+  pts.slice(1).forEach(([x, y], i) => {
+    const last = i === pts.length - 2, r = last ? 62 : 46;
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", r);
+    c.setAttribute("fill", last ? "#d97757" : fills[i]);
+    g.appendChild(c);
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", x); t.setAttribute("y", y + (last ? 22 : 15)); t.setAttribute("text-anchor", "middle");
+    t.setAttribute("font-size", last ? 62 : 42); t.setAttribute("fill", "#141413"); t.setAttribute("stroke", "none");
+    t.textContent = letters[i + 1];
+    g.appendChild(t);
+  });
 </script>
 </body></html>
