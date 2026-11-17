@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from bioseq_probe.probe import parse_raw
+
 LABEL = {"claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "gemini-2.5-pro": "Gemini 2.5 Pro", "deepseek-v4p1-flash": "DeepSeek V4.1 Flash",
          "qwen3p8-2p4t-a95b": "Qwen 3.8", "kimi-k3p1-pro": "Kimi K3.1 Pro", "glm-5p3": "GLM-5.3", "minimax-m3": "MiniMax M3",
          "gpt-oss-120b": "gpt-oss-120b", "nemotron-3-ultra-nvfp4": "Nemotron 3 Ultra"}
@@ -34,12 +36,14 @@ for m, name in LABEL.items():
     if not p.exists():
         continue
     recs = [json.loads(line) for line in p.open()]
+    for r in recs:  # re-scored from the text, so parser fixes apply
+        r["pred"] = parse_raw(r.get("text", "") or "")
     ok = [r for r in recs if "error" not in r and r.get("stop") != "refusal" and r["pred"]]
     refused = sum(r.get("stop") == "refusal" for r in recs)
     if len(ok) < 200:
         rows.append({"name": f"{name} (raw)", "kind": "raw", "d": np.nan, "lo": np.nan, "hi": np.nan, "note": f"{refused}/{len(recs)} refused"})
         continue
-    df = pd.DataFrame([{"pfam": r["pfam"], "condition": r["condition"], "first": r["first_correct"]} for r in ok])
+    df = pd.DataFrame([{"pfam": r["pfam"], "condition": r["condition"], "first": r["pred"][0] == r["target"][0]} for r in ok])
     d, lo, hi, nfam = family_diff(df)
     rows.append({"name": f"{name} (raw)", "kind": "raw", "d": d, "lo": lo, "hi": hi, "note": f"{len(recs)}/6680 probes"})
 c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")

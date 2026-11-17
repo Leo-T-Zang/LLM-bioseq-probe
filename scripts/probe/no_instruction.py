@@ -17,22 +17,18 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_probe.probe import STANDARD, fasta, shuffled
+from bioseq_probe.probe import echo, fasta, parse_raw, shuffled
 from bioseq_probe.providers import call
 
 OUT = Path("results/no_instruction")
 
 
 def parse(text: str, prefix: str) -> str:
-    letters = re.sub(r"[^A-Z]", "", re.sub(r"<[^>]*>", "", text.upper().replace(">SEQUENCE", "")))
-    i = letters.rfind(prefix[-15:])
-    if i != -1:
-        cont = letters[i + 15 :]
-    else:
-        first = re.sub(r"[\s>]", "", text.strip().split("\n\n")[0])
-        cont = first if re.fullmatch(r"[A-Za-z]+", first or "") else ""
-    cont = cont.upper()[:10]
-    return cont if cont and set(cont) <= set(STANDARD) else ""
+    """The residues after the reply's restatement of the prefix's end ("" if it only restates);
+    if it does not restate it, the residues it opens with (a leading ">sequence" header skipped).
+    A reply that opens with prose gives none."""
+    cont = echo(text, prefix)
+    return (parse_raw(re.sub(r"^\s*>[^\n]*", "", text or "")) if cont is None else cont)[:10]
 
 
 ap = argparse.ArgumentParser()

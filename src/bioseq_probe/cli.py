@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from bioseq_probe.probe import K, parse, prompt, score, shuffled
+from bioseq_probe.probe import K, cut_off, parse, prompt, score, shuffled
 from bioseq_probe.providers import MODELS, call
 
 PROVIDERS = ("anthropic", "openai_chat", "openai_responses", "gemini", "fireworks", "openrouter")
@@ -29,10 +29,12 @@ def probes(seqs: pd.DataFrame) -> list[dict]:
     ]
 
 
-def family_gap(records: list[dict], rng=np.random.default_rng(0)) -> tuple[float, float, float, int]:
-    """Real-minus-shuffled next-residue accuracy (points), 95% bootstrap CI over families, valid replies."""
+def family_gap(records: list[dict], prefixes: dict, rng=np.random.default_rng(0)) -> tuple[float, float, float, int]:
+    """Real-minus-shuffled next-residue accuracy (points), 95% bootstrap CI over families, valid replies.
+    prefixes: (accession, cut, condition) -> the prefix the model was shown."""
     rows = [{"pfam": d["pfam"], "condition": d["condition"], "hit": p[0] == d["target"][0]}
-            for d in records if "error" not in d and d.get("stop") != "refusal" and (p := parse(d.get("text", "")))]
+            for d in records if "error" not in d and d.get("stop") != "refusal"
+            and (p := parse(d.get("text", ""), prefixes[d["accession"], d["cut"], d["condition"]], cut=cut_off(d)))]
     fam = pd.DataFrame(rows).groupby(["pfam", "condition"]).hit.mean().unstack().dropna()
     gap = (fam["real"] - fam["shuffled"]).to_numpy() * 100
     boot = gap[rng.integers(0, len(gap), (10_000, len(gap)))].mean(1)
@@ -52,7 +54,9 @@ def main():
             ap.error(f"{args.model} is not in MODELS; pass --provider")
         MODELS[args.model] = (args.provider, {})
 
-    todo = probes(pd.read_csv("data/confirm_sequences.tsv", sep="\t"))[: args.limit]
+    every = probes(pd.read_csv("data/confirm_sequences.tsv", sep="\t"))
+    prefixes = {(p["accession"], p["cut"], p["condition"]): p["prefix"] for p in every}
+    todo = every[: args.limit]
     out = Path("results/confirm") / f"{args.model}.jsonl"
     done = {(d["accession"], d["cut"], d["condition"]) for d in map(json.loads, out.open())} if out.exists() else set()
     todo = [p for p in todo if (p["accession"], p["cut"], p["condition"]) not in done]
@@ -66,7 +70,7 @@ def main():
             rec = {"text": r.text, "stop": r.stop, "usage": r.usage}
         except Exception as e:
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
-        pred = parse(rec.get("text", ""))
+        pred = parse(rec.get("text", ""), p["prefix"], cut=cut_off(rec))
         return {"model": args.model, **{k: p[k] for k in ("accession", "pfam", "condition", "cut", "target")}, "pred": pred, **score(pred, p["target"]), **rec}
 
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -74,6 +78,6 @@ def main():
         for rec in pool.map(one, todo):
             f.write(json.dumps(rec) + "\n")
 
-    gap, lo, hi, n = family_gap([json.loads(line) for line in out.open()])
+    gap, lo, hi, n = family_gap([json.loads(line) for line in out.open()], prefixes)
     print(f"\n{args.model}: next amino acid, real minus shuffled = {gap:+.1f} points (95% CI {lo:+.1f} to {hi:+.1f}), {n} valid replies")
     print("for reference (results/confirm_tests.tsv): Claude Opus 5.5 +27.4, Opus 5 +9.7, Opus 4.7 +8.9, Opus 4.8 +7.7, GPT-6 Astra +2.9, GPT-5.5 +2.1, Gemini 4 Carbon +0.9")

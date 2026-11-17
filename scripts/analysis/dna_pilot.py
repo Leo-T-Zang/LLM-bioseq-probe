@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from bioseq_probe.dna import PREFIX, dinucleotide_shuffle, parse
+from bioseq_probe.probe import cut_off
 
 rng = np.random.default_rng(0)
 wins = pd.concat([pd.read_csv(p, sep="\t") for p in sorted(Path("data").glob("dna_windows_*.tsv"))]).set_index("locus")
@@ -33,12 +34,14 @@ for path in sorted(p for d in ("results/dna", "results/dna_guess") for p in Path
     if path.parent.name == "dna" and path.stem == "deepseek-v4p1-flash":
         continue  # declined almost every plain prompt; its best-guess run is in dna_guess
     for d in map(json.loads, path.open()):
-        pred = parse(d.get("text", ""))
-        if "error" in d or d.get("stop") == "refusal" or not pred:
+        if "error" in d or d.get("stop") == "refusal":
             continue
         w = wins.loc[d["locus"]].window
         full = w if d["condition"] == "real" else dinucleotide_shuffle(w, d["locus"])
         prefix, t = full[:PREFIX], d["target"]
+        pred = parse(d.get("text", ""), prefix, cut=cut_off(d))
+        if not pred:
+            continue
         rows.append({"model": d["model"], "species": d["species"], "region": d["region"], "locus": d["locus"], "condition": d["condition"],
                      "first": pred[0] == t[0], "all20": pred[: len(t)] == t and t not in prefix, "markov": markov_guess(prefix) == t[0]})
 df = pd.DataFrame(rows)

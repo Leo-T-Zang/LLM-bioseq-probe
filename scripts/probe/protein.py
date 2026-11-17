@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_probe.probe import K, parse, parse_echo, prompt, prompt_echo, score, shuffled
+from bioseq_probe.probe import K, cut_off, parse, parse_echo, prompt, prompt_echo, score, shuffled
 from bioseq_probe.providers import MODELS, call
 
 ap = argparse.ArgumentParser()
@@ -61,7 +61,7 @@ for model in args.models.split(","):
             rec = {"text": r.text, "stop": r.stop, "top_logprobs": r.top_logprobs[:K], "usage": r.usage}
         except Exception as e:  # recorded, not scored as a miss
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
-        pred = parse_echo(rec.get("text", ""), p["prefix"]) if args.echo else parse(rec.get("text", ""))
+        pred = parse_echo(rec.get("text", ""), p["prefix"]) if args.echo else parse(rec.get("text", ""), p["prefix"], cut=cut_off(rec))
         return {"model": model, **{k: p[k] for k in ("accession", "pfam", "condition", "cut", "target")}, "pred": pred, **score(pred, p["target"]), **rec}
 
     with path.open("a") as f, ThreadPoolExecutor(args.workers) as pool:

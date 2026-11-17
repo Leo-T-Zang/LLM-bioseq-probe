@@ -14,7 +14,6 @@ GPT models have no completion endpoint or prefill, so they are not here.
 import argparse
 import json
 import os
-import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -26,7 +25,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-from bioseq_probe.probe import K, STANDARD, fasta, score, shuffled
+from bioseq_probe.probe import K, fasta, parse_raw, score, shuffled
 
 load_dotenv()
 ASK = "Continue this protein sequence."
@@ -67,14 +66,6 @@ def continue_raw(model: str, prefix: str) -> tuple[str, dict, str | None]:
         config=types.GenerateContentConfig(temperature=0, max_output_tokens=2000, thinking_config=types.ThinkingConfig(thinking_budget=128)))
     stop = str(r.candidates[0].finish_reason) if r.candidates else f"blocked: {r.prompt_feedback}"
     return r.text or "", r.usage_metadata.model_dump() if r.usage_metadata else {}, stop
-
-
-def parse_raw(text: str) -> str:
-    """Residues written before any '>' or blank line, newlines and spaces dropped."""
-    body = re.split(r">|\n\s*\n", text, maxsplit=1)[0]
-    letters = re.sub(r"[\s]", "", body).upper()
-    letters = re.match(r"[A-Z]*", letters).group(0)
-    return letters[:K] if letters and set(letters[:K]) <= set(STANDARD) else ""
 
 
 if __name__ == "__main__":

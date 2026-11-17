@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from bioseq_probe.probe import K, parse, shuffled
+from bioseq_probe.probe import K, cut_off, parse, shuffled
 
 rng = np.random.default_rng(2026)
 seqs = pd.read_csv("data/confirm_sequences.tsv", sep="\t").set_index("accession")
@@ -25,12 +25,12 @@ for path in sorted(Path("results/confirm").glob("*.jsonl")):
     for d in map(json.loads, path.open()):
         if "error" in d or d.get("stop") == "refusal":
             continue
-        pred = parse(d.get("text", ""))
-        if not pred:
-            continue
         s = seqs.loc[d["accession"]]
         full = s.sequence if d["condition"] == "real" else shuffled(s.sequence, d["accession"])
         prefix, t = full[: d["cut"]], d["target"]
+        pred = parse(d.get("text", ""), prefix, cut=cut_off(d))
+        if not pred:
+            continue
         hits = [k < len(pred) and pred[k] == t[k] for k in range(K)]
         rows.append({"model": d["model"], "pfam": d["pfam"], "proteins": s.family_proteins, "condition": d["condition"],
                      "first": hits[0], **{f"p{k}": hits[k] for k in range(K)}, "all10": all(hits) and t not in prefix})

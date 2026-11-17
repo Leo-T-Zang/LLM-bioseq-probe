@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_probe.probe import K, parse, shuffled
+from bioseq_probe.probe import K, cut_off, parse, shuffled
 
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")
 group = pd.read_csv("data/sequence_groups.tsv", sep="\t").set_index("accession").group
@@ -16,11 +16,13 @@ for path in sorted(Path("results/probe").glob("*.jsonl")):
     if path.stem == "gpt-6-astra":
         continue
     for d in map(json.loads, path.open()):
-        pred = parse(d.get("text", ""))
-        if "error" in d or d.get("stop") == "refusal" or not pred:
+        if "error" in d or d.get("stop") == "refusal":
             continue
         s = seqs.loc[d["accession"]]
         full = s.sequence if d["condition"] == "real" else shuffled(s.sequence, d["accession"])
+        pred = parse(d.get("text", ""), full[: d["cut"]], cut=cut_off(d))
+        if not pred:
+            continue
         t = d["target"]
         hits = [k < len(pred) and pred[k] == t[k] for k in range(K)]
         vert = "vertebrate" if group[d["accession"]] == "Vertebrata" else "non-vertebrate"

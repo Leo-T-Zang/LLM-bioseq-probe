@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from bioseq_probe.probe import K, parse
+from bioseq_probe.probe import K, cut_off, parse, shown_prefix
 
 rng = np.random.default_rng(0)
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")
@@ -35,7 +35,8 @@ for prompt_kind, d in (("plain", "results/probe"), ("guess", "results/probe_gues
         recs = [json.loads(line) for line in path.open()]
         rows = []
         for r in recs:
-            pred = parse(r.get("text", ""))
+            prefix = shown_prefix(seqs.loc[r["accession"]].sequence, r["accession"], r["condition"], r["cut"])
+            pred = parse(r.get("text", ""), prefix, cut=cut_off(r))
             if "error" in r or r.get("stop") == "refusal" or not pred:
                 continue
             t = r["target"]

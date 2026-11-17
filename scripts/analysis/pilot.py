@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bioseq_probe.probe import parse, score, shuffled
+from bioseq_probe.probe import cut_off, parse, score, shuffled
 
 seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession")
 
@@ -42,10 +42,10 @@ def first_residue_logprob(tops: list[dict[str, float]], residue: str) -> float |
 rows = []
 for path in sorted(Path("results/probe").glob("*.jsonl")):
     for d in map(json.loads, path.open()):
-        d.update(score(parse(d.get("text", "")), d["target"]))  # re-scored, so parser fixes apply to all
         s = seqs.loc[d["accession"]]
         full = s.sequence if d["condition"] == "real" else shuffled(s.sequence, d["accession"])
         prefix, t = full[: d["cut"]], d["target"][0]
+        d.update(score(parse(d.get("text", ""), prefix, cut=cut_off(d)), d["target"]))  # re-scored, so parser fixes apply to all
         rows.append(
             {
                 **{k: d[k] for k in ("model", "condition", "accession", "pfam", "cut", "valid", "first_correct", "exact_run")},

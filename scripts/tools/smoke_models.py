@@ -3,7 +3,7 @@
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
-from bioseq_probe.probe import parse, prompt
+from bioseq_probe.probe import cut_off, parse, prompt
 from bioseq_probe.providers import MODELS, call
 
 PREFIX = "MSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTF"  # GFP, famous
@@ -12,7 +12,7 @@ PREFIX = "MSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTF"  # G
 def one(model):
     try:
         r = call(model, prompt(PREFIX))
-        return model, f"stop={r.stop} pred={parse(r.text)!r} raw={r.text[:60]!r} usage_out={r.usage.get('output_tokens') or r.usage.get('completion_tokens') or r.usage.get('candidates_token_count')}"
+        return model, f"stop={r.stop} pred={parse(r.text, PREFIX, cut=cut_off({'stop': r.stop}))!r} raw={r.text[:60]!r} usage_out={r.usage.get('output_tokens') or r.usage.get('completion_tokens') or r.usage.get('candidates_token_count')}"
     except Exception as e:
         return model, f"ERROR {type(e).__name__}: {str(e)[:300]}"
 

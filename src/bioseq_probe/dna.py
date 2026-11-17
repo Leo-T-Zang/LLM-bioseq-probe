@@ -1,10 +1,10 @@
 """The nucleotide probe: prompt, parsing, scoring and a dinucleotide-preserving shuffle."""
 
 import random
-import re
 import zlib
 from collections import defaultdict
 
+from bioseq_probe import probe
 from bioseq_probe.probe import GUESS
 
 K = 20  # nucleotides asked for; 4^-20 ~ 1e-12, so an exact run is not luck
@@ -21,10 +21,9 @@ def prompt(prefix: str, guess: bool = False) -> str:
     )
 
 
-def parse(text: str) -> str:
-    text = re.sub(r"<[^>]*>", "", text).strip()
-    letters = re.sub(r"[^A-Za-z]", "", text.splitlines()[-1] if text else "").upper()
-    return letters if letters and set(letters) <= set("ACGT") else ""
+def parse(text: str, prefix: str = "", cut: bool = False) -> str:
+    """The nucleotides the reply gives as its answer (bioseq_probe.probe.parse with A, C, G, T)."""
+    return probe.parse(text, prefix, alphabet="ACGT", cut=cut)
 
 
 def dinucleotide_shuffle(seq: str, key: str) -> str:

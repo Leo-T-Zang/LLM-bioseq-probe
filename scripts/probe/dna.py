@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 
 from bioseq_probe.dna import K, PREFIX, dinucleotide_shuffle, parse, prompt
+from bioseq_probe.probe import cut_off
 from bioseq_probe.providers import MODELS, call
 
 ap = argparse.ArgumentParser()
@@ -45,7 +46,7 @@ for model in args.models.split(","):
             rec = {"text": r.text, "stop": r.stop, "usage": r.usage}
         except Exception as e:
             rec = {"error": f"{type(e).__name__}: {e}"[:500]}
-        return {"model": model, **{k: p[k] for k in ("species", "region", "locus", "condition", "target")}, "pred": parse(rec.get("text", "")), **rec}
+        return {"model": model, **{k: p[k] for k in ("species", "region", "locus", "condition", "target")}, "pred": parse(rec.get("text", ""), p["prefix"], cut=cut_off(rec)), **rec}
 
     with path.open("a") as f, ThreadPoolExecutor(args.workers) as pool:
         for rec in pool.map(one, todo):

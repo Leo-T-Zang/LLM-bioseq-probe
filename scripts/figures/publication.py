@@ -124,7 +124,7 @@ header(fig, ax, "Claude Fable 5.2 beats every open protein language model we ran
 save(fig, "fig6_protein_lm")
 
 # Fig 7 and 8: every position of the 10 residues asked for -------------------------------------
-from bioseq_probe.probe import parse  # noqa: E402
+from bioseq_probe.probe import cut_off, parse, parse_raw, shown_prefix  # noqa: E402
 
 CHAT = ["claude-fable-5-2", "claude-opus-5-5", "claude-fable-5-1", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
         "gpt-6.1-sol", "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"]
@@ -132,13 +132,20 @@ RAW = {"gemini-2.5-pro": "Gemini 2.5 Pro", "deepseek-v4p1-flash": "DeepSeek V4.1
        "kimi-k3p1-pro": "Kimi K3.1 Pro", "glm-5p3": "GLM-5.3", "minimax-m3": "MiniMax M3", "gpt-oss-120b": "gpt-oss-120b",
        "nemotron-3-ultra-nvfp4": "Nemotron 3 Ultra"}
 LABEL.update(RAW)
+confirm_seq = pd.read_csv("data/confirm_sequences.tsv", sep="\t").set_index("accession").sequence
+
+
+def prefix_of(d):
+    return shown_prefix(confirm_seq[d["accession"]], d["accession"], d["condition"], d["cut"])
+
+
 replies = []  # (model, pfam, condition, hits at positions 1..10)
 for model in CHAT + list(RAW):
     for line in open(f"results/{'raw' if model in RAW else 'confirm'}/{model}.jsonl"):
         d = json.loads(line)
         if "error" in d or d.get("stop") == "refusal":
             continue
-        pred = d.get("pred", "") if model in RAW and d.get("valid") else ("" if model in RAW else parse(d.get("text", "") or ""))
+        pred = parse_raw(d.get("text", "") or "") if model in RAW else parse(d.get("text", "") or "", prefix_of(d), cut=cut_off(d))
         if pred:
             replies.append((model, d["pfam"], d["condition"], [k < len(pred) and pred[k] == d["target"][k] for k in range(10)]))
 pos = pd.DataFrame([(m, f, c, k + 1, h[k]) for m, f, c, h in replies for k in range(10)], columns=["model", "pfam", "condition", "k", "hit"])
@@ -314,12 +321,23 @@ papers = pd.read_csv("results/confirm_family_opus55.tsv", sep="\t").set_index("p
 SMALL_N = 2 * 5 * len(small)  # questions in a finished small-family run
 
 
+sequence_of = pd.concat([seqs.set_index("accession").sequence, small.set_index("accession").sequence])
+
+
 def family_gaps(*paths):
+    """Per-family gap. LLM replies are scored from their text with the current parser; protein
+    language model records (results/plm_*) keep their stored scores."""
     rows = []
     for path in paths:
         if not Path(path).exists() or ("small" in path and sum(1 for _ in open(path)) < SMALL_N):
             continue  # a small-family run still going is left out
-        rows += [json.loads(line) for line in open(path)]
+        recs = [json.loads(line) for line in open(path)]
+        if "/plm" not in path:
+            recs = [{**r, "valid": True, "first_correct": p[0] == r["target"][0]} for r in recs
+                    if "error" not in r and r.get("stop") != "refusal"
+                    and (p := parse(r.get("text", "") or "", shown_prefix(sequence_of[r["accession"]], r["accession"], r["condition"], r["cut"]),
+                                    cut=cut_off(r)))]
+        rows += recs
     d = pd.DataFrame(rows)
     if "valid" in d:
         d = d[d.valid.astype(bool) & (d.get("stop") != "refusal")]

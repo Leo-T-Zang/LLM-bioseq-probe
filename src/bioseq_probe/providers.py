@@ -85,9 +85,16 @@ def _openai_chat(model, prompt, max_tokens, cfg):
     return Reply(c.message.content or "", c.finish_reason, tops, r.usage.model_dump())
 
 
+def responses_stop(r) -> str | None:
+    """The Responses API's stop reason: its status, or why it is incomplete ("max_output_tokens"
+    when the reply hit the token limit; see bioseq_probe.probe.cut_off)."""
+    details = getattr(r, "incomplete_details", None)
+    return getattr(details, "reason", None) or r.status if r.status == "incomplete" else r.status
+
+
 def _openai_responses(model, prompt, max_tokens, cfg):
     r = openai.OpenAI().responses.create(model=model, input=prompt, max_output_tokens=max_tokens, **cfg)
-    return Reply(r.output_text or "", r.status, usage=r.usage.model_dump() if r.usage else {})
+    return Reply(r.output_text or "", responses_stop(r), usage=r.usage.model_dump() if r.usage else {})
 
 
 def _fireworks(model, prompt, max_tokens, cfg):

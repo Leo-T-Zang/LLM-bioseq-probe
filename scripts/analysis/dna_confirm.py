@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from bioseq_probe.dna import PREFIX, dinucleotide_shuffle, parse
+from bioseq_probe.probe import cut_off
 
 rng = np.random.default_rng(2026)
 wins = pd.read_csv("data/dna_confirm_windows.tsv", sep="\t").set_index("locus")
@@ -20,12 +21,14 @@ wins = pd.read_csv("data/dna_confirm_windows.tsv", sep="\t").set_index("locus")
 rows = []
 for path in sorted(Path("results/dna_confirm").glob("*.jsonl")):
     for d in map(json.loads, path.open()):
-        pred = parse(d.get("text", ""))
-        if "error" in d or d.get("stop") == "refusal" or not pred:
+        if "error" in d or d.get("stop") == "refusal":
             continue
         w = wins.loc[d["locus"]].window
         full = w if d["condition"] == "real" else dinucleotide_shuffle(w, d["locus"])
         t = d["target"]
+        pred = parse(d.get("text", ""), full[:PREFIX], cut=cut_off(d))
+        if not pred:
+            continue
         rows.append({"model": d["model"], "cell": f"{d['species']} {d['region']}", "locus": d["locus"], "condition": d["condition"],
                      "first": float(pred[0] == t[0]), "all20": pred[: len(t)] == t and t not in full[:PREFIX]})
 df = pd.DataFrame(rows)

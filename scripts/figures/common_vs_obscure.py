@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from bioseq_probe.probe import parse
+from bioseq_probe.probe import cut_off, parse, shown_prefix
 
 LABEL = {"gpt-4o-2024-11-20": "GPT-4o", "gpt-4.1-2025-04-14": "GPT-4.1", "gpt-5.5": "GPT-5.5", "gpt-6.1-sol": "GPT-6.1 Sol", "gpt-6-astra": "GPT-6 Astra",
          "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-8": "Claude Opus 4.8",
@@ -34,6 +34,11 @@ def subset_of(acc):
     return "well-known" if vert and lit == "rich" else ("obscure" if not vert and lit == "poor" else None)
 
 
+def answer(r):
+    prefix = shown_prefix(seqs.loc[r["accession"]].sequence, r["accession"], r["condition"], r["cut"])
+    return parse(r.get("text", ""), prefix, cut=cut_off(r))
+
+
 def boot(g):
     t = g.groupby(["pfam", "condition"])["first"].mean().unstack().dropna()
     D = (t["real"] - t["shuffled"]).to_numpy() * 100
@@ -46,9 +51,9 @@ for m, name in LABEL.items():
     path = Path(f"results/probe_guess/{m}.jsonl")
     path = path if path.exists() else Path(f"results/probe/{m}.jsonl")
     recs = [json.loads(line) for line in path.open()]
+    answers = [(r, answer(r)) for r in recs if "error" not in r and r.get("stop") != "refusal"]
     df = pd.DataFrame([{"pfam": r["pfam"], "condition": r["condition"], "sub": subset_of(r["accession"]),
-                        "first": (lambda p: p[0] == r["target"][0])(parse(r.get("text", "")))} for r in recs
-                       if "error" not in r and r.get("stop") != "refusal" and parse(r.get("text", ""))])
+                        "first": p[0] == r["target"][0]} for r, p in answers if p])
     for sub in ("well-known", "obscure"):
         d, lo, hi = boot(df[df["sub"] == sub])
         rows.append({"model": name, "sub": sub, "d": d, "lo": lo, "hi": hi, "guess": "probe_guess" in str(path)})

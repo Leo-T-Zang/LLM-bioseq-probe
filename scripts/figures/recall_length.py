@@ -10,13 +10,31 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from bioseq_probe.probe import cut_off, parse
+
 LABEL = {"claude-opus-5-5": "Claude Opus 5.5", "claude-opus-5": "Claude Opus 5", "claude-opus-4-8": "Claude Opus 4.8",
          "gemini-4-carbon": "Gemini 4 Carbon", "gemini-3.8-flash": "Gemini 3.8 Flash", "gemini-3.5-flash": "Gemini 3.5 Flash",
          "gpt-6.1-sol": "GPT-6.1 Sol", "gpt-5.5": "GPT-5.5"}
 THRESH = [20, 50, 100, 200]
+seqs = pd.read_csv("data/sequences_pilot.tsv", sep="\t").set_index("accession").sequence
+
+
+def exact_run(r):
+    """Residues recited exactly, scored from the reply's text with the current parser. Replies
+    saved before the stop reason was kept were cut to their first 2,000 characters; one that fills
+    them may not show its end, so it is read as cut off (only a sequence it opens with counts)."""
+    acc, cut = r["id"].rsplit(":", 1)
+    clipped = "stop" not in r and len(r["text"]) >= 2000
+    pred = parse(r["text"], seqs[acc][: int(cut)], prefer_len=20, cut=cut_off(r) or clipped)
+    truth = seqs[acc][int(cut) :]
+    n = 0
+    while n < min(len(pred), len(truth)) and pred[n] == truth[n]:
+        n += 1
+    return n
+
+
 rows = [json.loads(line) for p in Path("results/recall_length").glob("*.jsonl") for line in p.open()]
-df = pd.DataFrame(rows)
-df = df[df.exact_run.notna()]
+df = pd.DataFrame([{**r, "exact_run": exact_run(r)} for r in rows if "error" not in r])
 n_cases = df.groupby("model").id.nunique()
 models = [m for m in LABEL if m in set(df.model) and n_cases[m] >= 150]
 tab = pd.DataFrame({f">= {t}": df.groupby("model").exact_run.apply(lambda s, t=t: int((s >= t).sum())) for t in THRESH}).loc[models]
