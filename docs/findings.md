@@ -2,9 +2,22 @@
 
 **Claude Fable 5.2** (run through OpenRouter; Anthropic's API serves it only to workspaces that retain
 data): +45.1 points (95% CI 42.5 to 47.6), 54.1% vs 9.0%, positive in 98% of families, +45.9 in the
-families with no papers, flat across family size (rho 0.00). It matches Opus 5.5 and ProtGPT3-10B on
+families with no papers. On the main set it is flat across family size (rho 0.00) because it is
+already at its ceiling there: on 90 smaller families (20 to 300 proteins) it rises from +19.5 to
++35.5, then levels off near +45 (rho 0.38 over all 257 families). It matches Opus 5.5 and ProtGPT3-10B on
 which families are easy (Spearman 0.63 and 0.57) and reproduces on a repeat of 400 questions (57.5%
-vs 57.5% real). **GPT-6.1 Sol**: +0.6 (-0.7 to 2.0).
+vs 57.5% real). On the pilot it scores +70.3 on well-known and +53.3 on obscure proteins, the highest on both.
+It thinks on 9% of questions; without thinking it scores 54.7% vs 8.8%.
+
+**Claude Fable 5.1**: +14.9 (12.6 to 17.2), never thinks, rho 0.48 over 257 families.
+**Claude Fable 5**: Anthropic's filter blocked 44% of its questions; on the rest +13.9 (11.6 with
+blocked questions counted as wrong, 14.6 on cuts answered on both real and shuffled).
+**GPT-6.1 Sol**: +0.6 (-0.7 to 2.0).
+
+Family size over all 257 families (gap in points, bins 20-60 / 60-150 / 150-300 / 300-1k / 1k-3k /
+3k-10k / >10k): Opus 5.5 +7.9 / +7.4 / +14.4 / +21.2 / +26.0 / +31.7 / +36.7 (rho 0.50);
+ProtGPT3-10B +3.2 / +6.5 / +10.7 / +23.9 / +25.3 / +30.6 / +37.1 (rho 0.46); Fable 5.2 +19.5 / +24.0 /
++35.5 / +44.1 / +46.0 / +46.4 / +41.5 (rho 0.38).
 
 Run through each provider's API in November 2026. Figures: `figures/fig0_method` to `fig5_family_size`.
 

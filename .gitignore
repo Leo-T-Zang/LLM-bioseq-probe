@@ -16,3 +16,6 @@ results/*/
 results/*.png
 results/*.pdf
 results/probe_scored.tsv
+results/*.log
+data/small_family_sequences.bin*.tsv
+data/small_family_tried.*.txt

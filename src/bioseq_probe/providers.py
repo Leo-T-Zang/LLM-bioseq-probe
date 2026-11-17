@@ -44,6 +44,8 @@ MODELS: dict[str, tuple[str, dict]] = {
     "nemotron-3-ultra-nvfp4": ("fireworks", {"reasoning_effort": "none"}),
     # no direct route: the Anthropic API serves Fable only to workspaces with data retention enabled
     "claude-fable-5-2": ("openrouter", {"id": "anthropic/claude-fable-5.2", "reasoning": {"effort": "low"}}),
+    "claude-fable-5-1": ("openrouter", {"id": "anthropic/claude-fable-5.1", "reasoning": {"effort": "low"}}),
+    "claude-fable-5": ("openrouter", {"id": "anthropic/claude-fable-5", "reasoning": {"effort": "low"}}),
 }
 
 
@@ -111,7 +113,8 @@ def _openrouter(model, prompt, max_tokens, cfg):
         extra_body=cfg,
     )
     c = r.choices[0]
-    return Reply(c.message.content or "", c.finish_reason, usage=r.usage.model_dump() if r.usage else {})
+    stop = "refusal" if c.finish_reason == "content_filter" else c.finish_reason  # Anthropic's usage-policy block
+    return Reply(c.message.content or "", stop, usage=r.usage.model_dump() if r.usage else {})
 
 
 def _gemini(model, prompt, max_tokens, cfg):

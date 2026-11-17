@@ -23,7 +23,7 @@ GOOGLE = "#4285F4"
 PROTEIN_LM = "#9B59B6"  # protein language models, drawn as diamonds
 CLAUDE = {  # older generations lighter
     "Claude Sonnet 4.5": "#F6DFD4", "Claude Opus 4.5": "#F3D3C4", "Claude Opus 4.6": "#EFC1AB",
-    "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT, "Claude Fable 5.2": "#9C3A1C",
+    "Claude Opus 4.7": "#EAAD92", "Claude Opus 4.8": "#E59C7D", "Claude Opus 5": "#DF8A68", "Claude Opus 5.5": ACCENT, "Claude Fable 5.1": "#C0694C", "Claude Fable 5.2": "#9C3A1C",
 }
 
 for path in Path("/usr/share/fonts").rglob("LiberationSans-*.ttf"):

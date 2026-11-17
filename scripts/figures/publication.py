@@ -18,7 +18,7 @@ HEROES = {"Claude Opus 5.5", "Claude Fable 5.2"}
 from bioseq_probe.figstyle import ACCENT, ACCENT_TEXT, GREY, GRID, INK, LIGHT_GREY, MUTED, PROTEIN_LM, color, header, save
 
 LABEL = {"claude-opus-4-5-20251101": "Claude Opus 4.5", "claude-opus-4-6": "Claude Opus 4.6", "claude-opus-4-7": "Claude Opus 4.7", "claude-opus-4-8": "Claude Opus 4.8", "claude-opus-5": "Claude Opus 5",
-         "claude-opus-5-5": "Claude Opus 5.5", "claude-fable-5-2": "Claude Fable 5.2", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
+         "claude-opus-5-5": "Claude Opus 5.5", "claude-fable-5-2": "Claude Fable 5.2", "claude-fable-5-1": "Claude Fable 5.1", "gpt-5.5": "GPT-5.5", "gpt-6-astra": "GPT-6 Astra", "gemini-4-carbon": "Gemini 4 Carbon",
          "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5", "gemini-3.5-flash": "Gemini 3.5 Flash", "gemini-3.8-flash": "Gemini 3.8 Flash",
          "gpt-6.1-sol": "GPT-6.1 Sol"}
 
@@ -42,7 +42,7 @@ c = pd.read_csv("results/confirm_tests.tsv", sep="\t").set_index("model")
 raw = pd.read_csv("results/raw_summary.tsv", sep="\t")
 plm = pd.read_csv("results/plm_summary.tsv", sep="\t").query("mode == 'prefix'").set_index("model")
 groups = [
-    ("Anthropic", [("claude-fable-5-2", "chat"), ("claude-opus-5-5", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
+    ("Anthropic", [("claude-fable-5-2", "chat"), ("claude-opus-5-5", "chat"), ("claude-fable-5-1", "chat"), ("claude-opus-5", "chat"), ("claude-opus-4-8", "chat"), ("claude-opus-4-7", "chat"),
                    ("claude-opus-4-6", "chat"), ("claude-opus-4-5-20251101", "chat")]),
     ("OpenAI", [("gpt-6.1-sol", "chat"), ("gpt-6-astra", "chat"), ("gpt-5.5", "chat")]),
     ("Google", [("gemini-4-carbon", "chat"), ("Gemini 2.5 Pro (raw)", "raw")]),
@@ -68,7 +68,7 @@ for g, members in groups:
         y_of[name] = y
         y -= 1
     y -= 0.35
-fig, ax = plt.subplots(figsize=(4.6, 4.75))
+fig, ax = plt.subplots(figsize=(4.6, 4.95))
 forest(ax, rows, y_of, "Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.set_yticks(list(y_of.values()), list(y_of.keys()))
 for t, m in zip(ax.get_yticklabels(), y_of):
@@ -84,7 +84,7 @@ ax.legend(handles=[Line2D([], [], marker="o", ls="", color=GREY, ms=4.2, label="
                    Line2D([], [], marker="o", ls="", color=GREY, mfc="white", ms=4.2, mew=1.0, label="LLM, raw continuation"),
                    ],
           loc="lower right", handletextpad=0.4)
-header(fig, ax, "Of 19 language models, only the latest Claude models predict little-studied proteins",
+header(fig, ax, "Of 20 language models, only the latest Claude models predict little-studied proteins",
        "668 bacterial and archaeal proteins from 167 unknown-function (DUF) families, no relative at ≥90% identity;\n"
        "points: mean over families, bars: 95% bootstrap CI. Raw continuation: completion endpoint or prefilled reply.\n"
        "Claude Sonnet 4.5 refused 97% of prefill requests (not shown).")
@@ -126,7 +126,7 @@ save(fig, "fig6_protein_lm")
 # Fig 7 and 8: every position of the 10 residues asked for -------------------------------------
 from bioseq_probe.probe import parse  # noqa: E402
 
-CHAT = ["claude-fable-5-2", "claude-opus-5-5", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
+CHAT = ["claude-fable-5-2", "claude-opus-5-5", "claude-fable-5-1", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
         "gpt-6.1-sol", "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"]
 RAW = {"gemini-2.5-pro": "Gemini 2.5 Pro", "deepseek-v4p1-flash": "DeepSeek V4.1 Flash", "qwen3p8-2p4t-a95b": "Qwen 3.8",
        "kimi-k3p1-pro": "Kimi K3.1 Pro", "glm-5p3": "GLM-5.3", "minimax-m3": "MiniMax M3", "gpt-oss-120b": "gpt-oss-120b",
@@ -257,7 +257,7 @@ for name, path in (("ProtGPT3-10B", "results/plm_pilot/protgpt3-10B__prefix.json
     fam = d.groupby(["sub", "pfam", "condition"]).first_correct.mean().unstack().dropna()
     wide.loc[name] = ((fam.real - fam.shuffled) * 100).groupby("sub").mean()
 order = wide.sort_values("well-known").index.tolist()
-fig, ax = plt.subplots(figsize=(4.6, 4.7))
+fig, ax = plt.subplots(figsize=(4.6, 5.0))
 for y, m in enumerate(order):
     a, b = wide.loc[m, "well-known"], wide.loc[m, "obscure"]
     col, mk, ms = color(m), ("D" if m.startswith("Prot") else "o"), (3.9 if m.startswith("Prot") else 4.2)
@@ -269,16 +269,17 @@ ax.set_yticks(range(len(order)), [m + (" *" if guess.get(m) else "") for m in or
 for tl in ax.get_yticklabels():
     if tl.get_text().startswith("Prot"):
         tl.set_color(PROTEIN_LM)
-ax.axhspan(order.index("Claude Opus 5.5") - 0.45, order.index("Claude Opus 5.5") + 0.45, color=ACCENT, alpha=0.09, lw=0, zorder=0)
+for hero in ("Claude Opus 5.5", "Claude Fable 5.2"):
+    ax.axhspan(order.index(hero) - 0.45, order.index(hero) + 0.45, color=ACCENT, alpha=0.09, lw=0, zorder=0)
 for tl in ax.get_yticklabels():
-    if tl.get_text().startswith("Claude Opus 5.5"):
+    if tl.get_text() in ("Claude Opus 5.5", "Claude Fable 5.2"):
         tl.set_fontweight("bold")
 ax.axvline(0, color=MUTED, lw=0.6)
 ax.set_xlabel("Next amino acid: real minus shuffled accuracy (percentage points)")
 ax.legend(handles=[Line2D([], [], marker="o", ls="", color="white", mec=MUTED, mew=1.1, ms=4.2, label="well-known: vertebrate proteins, well-studied families"),
                    Line2D([], [], marker="o", ls="", color=MUTED, ms=4.2, label="obscure: non-vertebrate DUF proteins")],
           loc="lower right", handletextpad=0.3)
-header(fig, ax, "On obscure proteins, Claude Opus 5.5 behaves like a protein language model",
+header(fig, ax, "On obscure proteins, the latest Claude models hold up like a protein language model",
        "Pilot set, 37 Pfam families (16 well-known, 17 obscure); means over families. * best-guess prompt (the model declined\n"
        "the plain one). Purple diamonds: protein language models given the same residues before the cut.")
 save(fig, "fig3_known_vs_obscure")
@@ -302,16 +303,26 @@ header(fig, ax, "Several models recite hundreds of residues of famous proteins",
        "Cut points that any model continued 10/10 in the pilot; asked for the next 200 residues. Bars overlap: each darker bar is a subset; the \u2265200 segment in each lab's colour.")
 save(fig, "fig4_recall")
 
-# Fig 5: the gap by family size -----------------------------------------------------------------
+# Fig 5: the gap by family size, 20 to 30,000+ proteins -------------------------------------------
+from pathlib import Path  # noqa: E402
+
 seqs = pd.read_csv("data/confirm_sequences.tsv", sep="\t")
-bins = ["300-1000", "1000-3000", "3000-10000", "10000-max"]
-bin_of = seqs.groupby("pfam").size_bin.first()
+small = pd.read_csv("data/small_family_sequences.tsv", sep="\t")
+bins = ["20-60", "60-150", "150-300", "300-1000", "1000-3000", "3000-10000", "10000-max"]
+bin_of = pd.concat([small.groupby("pfam").size_bin.first(), seqs.groupby("pfam").size_bin.first()])
 papers = pd.read_csv("results/confirm_family_opus55.tsv", sep="\t").set_index("pfam").epmc
+SMALL_N = 2 * 5 * len(small)  # questions in a finished small-family run
 
 
-def family_gaps(model, path=None):
-    d = pd.DataFrame(json.loads(line) for line in open(path or f"results/confirm/{model}.jsonl"))
-    d = d[d.valid.astype(bool)] if "valid" in d else d
+def family_gaps(*paths):
+    rows = []
+    for path in paths:
+        if not Path(path).exists() or ("small" in path and sum(1 for _ in open(path)) < SMALL_N):
+            continue  # a small-family run still going is left out
+        rows += [json.loads(line) for line in open(path)]
+    d = pd.DataFrame(rows)
+    if "valid" in d:
+        d = d[d.valid.astype(bool) & (d.get("stop") != "refusal")]
     fam = d.groupby(["pfam", "condition"]).first_correct.mean().unstack().dropna()
     return (fam.real - fam.shuffled) * 100
 
@@ -320,59 +331,81 @@ def by_bin(g, rng=np.random.default_rng(0)):
     out = []
     for b in bins:
         x = g[bin_of.reindex(g.index) == b].to_numpy()
+        if len(x) < 5:
+            out.append((np.nan, np.nan, np.nan))
+            continue
         boot = x[rng.integers(0, len(x), (10_000, len(x)))].mean(1)
         out.append((x.mean(), *np.percentile(boot, [2.5, 97.5])))
     return np.array(out)
 
 
-fig, ax = plt.subplots(figsize=(4.6, 3.0))
-xs = np.arange(len(bins))
-ends = []
-order = ["gpt-5.5", "gpt-6-astra", "gpt-6.1-sol", "gemini-4-carbon", "claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8",
-         "claude-opus-5", "claude-opus-5-5", "claude-fable-5-2"]
-for m in order:
-    g = family_gaps(m)
-    r = by_bin(g)
-    col, top = color(LABEL[m]), m in ("claude-opus-5-5", "claude-fable-5-2")
-    if m == "claude-opus-5-5":
-        ax.fill_between(xs, r[:, 1], r[:, 2], color=col, alpha=0.15, lw=0)
-    ax.plot(xs, r[:, 0], "-o", color=col, lw=1.6 if top else 1.0, ms=3.6 if top else 2.8, zorder=3 if top else 2)
-    ends.append([r[-1, 0], m])
-    if m == "claude-opus-5-5":
-        z = by_bin(g[papers.reindex(g.index) == 0])
-        ax.plot(xs, z[:, 0], "--", color=col, lw=1.0, zorder=3)
-        ax.text(xs[2] + 0.08, z[2, 0] - 1.2, "Opus 5.5, zero-paper families", fontsize=6, color=ACCENT_TEXT, ha="left", va="top")
 LABEL["protgpt3-10B"] = "ProtGPT3-10B"
-r = by_bin(family_gaps("protgpt3-10B", "results/plm_confirm/protgpt3-10B__prefix.jsonl"))
-ax.plot(xs, r[:, 0], "-D", color=PROTEIN_LM, lw=1.6, ms=3.6, zorder=4)
-ends.append([r[-1, 0], "protgpt3-10B"])
-ends.sort()
-orig = [y for y, _ in ends]
-for i in range(1, len(ends)):  # keep end labels at least 2.6 points apart ...
-    ends[i][0] = max(ends[i][0], ends[i - 1][0] + 2.6)
-start = 0
-for i in range(1, len(ends) + 1):  # ... and centre each pushed-apart run on its lines
-    if i == len(ends) or ends[i][0] - ends[i - 1][0] > 2.61:
-        shift = np.mean(orig[start:i]) - np.mean([y for y, _ in ends[start:i]])
-        for e in ends[start:i]:
-            e[0] += shift
-        start = i
-for y, m in ends:
-    top = m in ("claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B")
-    ax.text(xs[-1] + 0.12, y, LABEL[m], va="center", fontsize=6.2, color=(PROTEIN_LM if m == "protgpt3-10B" else INK) if top else MUTED,
-            fontweight="bold" if top else "normal",
-            bbox={"fc": "white", "ec": "none", "pad": 0.4})
-ax.axhline(0, color=MUTED, lw=0.6)
-ax.set_ylim(-9.5, 56)
-ax.set_xticks(xs, ["300–1k", "1k–3k", "3k–10k", ">10k"])
-ax.set_xlim(-0.25, len(bins) - 1 + 1.25)
-ax.set_xlabel("Proteins in the family (Pfam)")
-ax.set_ylabel("Real minus shuffled (points)")
-ax.grid(axis="y", color=GRID, lw=0.5)
-ax.grid(axis="x", visible=False)
-header(fig, ax, "Claude Opus 5.5 tracks family size like a protein language model; Fable 5.2 is high everywhere",
-       "Next amino acid on the 167 DUF families of Fig. 1, by family size (50, 50, 50, 17 families); mean over families,\n"
-       "band: 95% bootstrap CI for Opus 5.5. Dashed: Opus 5.5 on the 128 families with no Europe PMC hit.\n"
-       "Purple diamonds: ProtGPT3-10B, a protein language model, given the same residues before the cut.")
-save(fig, "fig5_family_size")
+HERO5 = ("claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B")
+
+
+def family_size_figure(models, name, title, subtitle, size, scale=1.0, faint=(), background=(), background_label=""):
+    fig, ax = plt.subplots(figsize=size)
+    xs = np.arange(len(bins))
+    ends = []
+    bg_ends = []
+    for m in background:  # thin grey lines under one shared label
+        r = by_bin(family_gaps(f"results/confirm/{m}.jsonl", f"results/small_families/{m}.jsonl"))
+        ax.plot(xs, r[:, 0], "-", color=GREY, lw=0.8, alpha=0.6, zorder=1)
+        bg_ends.append(r[-1, 0])
+    if background:
+        LABEL[background_label] = background_label
+        ends.append([float(np.nanmean(bg_ends)), background_label])
+    for m in models:
+        if m == "protgpt3-10B":
+            r = by_bin(family_gaps("results/plm_confirm/protgpt3-10B__prefix.jsonl", "results/plm_small/protgpt3-10B__prefix.jsonl"))
+            ax.plot(xs, r[:, 0], "-D", color=PROTEIN_LM, lw=1.6 * scale, ms=3.6 * scale, zorder=4)
+        else:
+            r = by_bin(family_gaps(f"results/confirm/{m}.jsonl", f"results/small_families/{m}.jsonl"))
+            col, top = color(LABEL[m]), m in HERO5
+            if top:
+                ok = ~np.isnan(r[:, 0])
+                ax.fill_between(xs[ok], r[ok, 1], r[ok, 2], color=col, alpha=0.12, lw=0)
+            if m in faint:
+                ax.plot(xs, r[:, 0], "-o", color=col, lw=0.9, ms=2.2, alpha=0.75, zorder=2)
+            else:
+                ax.plot(xs, r[:, 0], "-o", color=col, lw=(1.6 if top else 1.0) * scale, ms=(3.6 if top else 2.8) * scale, zorder=3 if top else 2)
+        ends.append([r[-1, 0], m])
+    ends.sort()
+    gap = 2.6 * scale
+    orig = [y for y, _ in ends]
+    for i in range(1, len(ends)):  # keep end labels apart ...
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + gap)
+    start = 0
+    for i in range(1, len(ends) + 1):  # ... and centre each pushed-apart run on its lines
+        if i == len(ends) or ends[i][0] - ends[i - 1][0] > gap + 0.01:
+            shift = np.mean(orig[start:i]) - np.mean([y for y, _ in ends[start:i]])
+            for e in ends[start:i]:
+                e[0] += shift
+            start = i
+    for y, m in ends:
+        top = m in HERO5
+        ax.text(xs[-1] + 0.15, y, LABEL[m], va="center", fontsize=6.0 * (scale if top else 1.0), color=(PROTEIN_LM if m == "protgpt3-10B" else INK) if top else MUTED,
+                fontweight="bold" if top else "normal", bbox={"fc": "white", "ec": "none", "pad": 0.4})
+    ax.axhline(0, color=MUTED, lw=0.6)
+    ax.axvline(2.5, color=LIGHT_GREY, lw=0.8, ls=":", zorder=0)
+    ax.text(2.42, 54, "small-family set", ha="right", va="top", fontsize=5.8, color=MUTED)
+    ax.text(2.58, 54, "main set", ha="left", va="top", fontsize=5.8, color=MUTED)
+    ax.set_ylim(-9.5 if len(models) > 3 else -3, 56)
+    ax.set_xticks(xs, ["20–60", "60–150", "150–300", "300–1k", "1k–3k", "3k–10k", ">10k"])
+    ax.set_xlim(-0.3, len(bins) - 1 + 1.6)
+    ax.set_xlabel("Proteins in the family (Pfam)")
+    ax.set_ylabel("Real minus shuffled (points)")
+    ax.grid(axis="y", color=GRID, lw=0.5)
+    ax.grid(axis="x", visible=False)
+    header(fig, ax, title, subtitle)
+    save(fig, name)
+
+
+SETS5 = ("Next amino acid on 257 DUF families: 90 from 20 to 300 proteins, 30 per bin, and the 167 of Fig. 1; mean over families,\n"
+         "bands: 95% bootstrap CI for Fable 5.2 and Opus 5.5. Purple diamonds: ProtGPT3-10B, a protein language model, on the same residues.")
+EARLIER = ("claude-opus-4-5-20251101", "claude-opus-4-6", "claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-fable-5-1")
+family_size_figure([*EARLIER, "claude-opus-5-5", "claude-fable-5-2", "protgpt3-10B"], "fig5_family_size",
+                   "The bigger the protein family, the better the latest Claude models, as for a protein language model",
+                   SETS5 + "\nThin lines: earlier Claude models; grey: GPT-6.1 Sol, GPT-6 Astra, GPT-5.5 and Gemini 4 Carbon.", (5.2, 3.4), 1.25,
+                   faint=EARLIER, background=("gpt-6.1-sol", "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"), background_label="GPT and Gemini")
 print("figures/fig1_protein, fig2_dna, fig3_known_vs_obscure, fig4_recall, fig5_family_size, fig6_protein_lm, fig7_by_position, fig8_runs")

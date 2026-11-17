@@ -18,6 +18,7 @@ image = (
     .add_local_file("scripts/probe/protein_lm.py", "/work/protein_lm.py")
     .add_local_file("data/confirm_sequences.tsv", "/work/data/confirm_sequences.tsv")
     .add_local_file("data/sequences_pilot.tsv", "/work/data/sequences_pilot.tsv")
+    .add_local_file("data/small_family_sequences.tsv", "/work/data/small_family_sequences.tsv")
 )
 
 

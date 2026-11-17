@@ -28,21 +28,26 @@ Give a model the start of a protein and ask for the next amino acids.
 |---|---|---|
 | Claude Fable 5.2 (through OpenRouter) | 54.1% vs 9.0% | **+45.1 (42.5 to 47.6)** |
 | Claude Opus 5.5 | 34.9% vs 7.5% | **+27.4 (24.7 to 30.0)** |
+| Claude Fable 5.1 (through OpenRouter) | 21.4% vs 6.6% | +14.9 (12.6 to 17.2) |
 | Claude Opus 5 | 17.5% vs 7.7% | +9.7 (7.3 to 12.2) |
 | Claude Opus 4.8 | 15.5% vs 7.8% | +7.7 (5.5 to 9.8) |
 | Claude Opus 4.7 | 16.1% vs 7.2% | +8.9 (6.9 to 11.1) |
 | Claude Opus 4.5 and 4.6, GPT-5.5, GPT-6 Astra, GPT-6.1 Sol, Gemini 4 Carbon | | +0.6 to +2.9 |
 | Gemini 2.5 Pro and 7 open-weight models, raw next-token continuation | | -0.0 to +1.9 |
 
-- The Opus 5.5 gap grows with family size (Spearman 0.27, p = 0.0002), including in the
-  128 families with zero papers, and appears in 95% of families
-  ([figure](figures/fig5_family_size.png)).
+- The gap grows with family size, as for a protein language model. With 90 smaller families
+  added (20 to 300 proteins each, 257 families in all), Opus 5.5 goes from +8 to +37 points
+  and ProtGPT3-10B from +3 to +37; Fable 5.2 rises from +20 and levels off near +45 from about
+  300 proteins per family. Every Claude model from Opus 4.7 on follows the trend (Spearman 0.30
+  to 0.50); GPT and Gemini stay at zero ([figure](figures/fig5_family_size.png)). The gap is the
+  same in the 128 families with zero papers.
 - Given the same input (the residues before the cut), Opus 5.5 matches ProtGPT3-10B (+27.7), the
   newest and largest open left-to-right protein language model, and scores well above smaller
   ones: ESM C 600M +13.0, ProtGPT3-1.3B +11.6, ProtGPT2 +10.2, ESM3-open +8.5, ESM-2 650M +7.0.
   ProtGPT3-10B also follows the same family-size curve ([figure](figures/fig6_protein_lm.png)).
-- It is not test-time reasoning (same accuracy when Opus 5.5 writes 15 tokens or fewer)
-  and not the prompt format (copy-then-continue gives the same result).
+- It is not test-time reasoning: the API reports thinking tokens on only 9% of Fable 5.2's
+  answers and 36% of Opus 5.5's, and the answers without thinking are just as accurate. Nor is
+  it the prompt format (copy-then-continue gives the same result).
 - **DNA:** Opus 5.5 predicts human and mouse coding sequence (25 exact 20-nucleotide
   continuations in 500 human windows) but not promoters, introns, intergenic DNA, or the
   bacterial genes behind the proteins above ([figure](figures/fig2_dna.png)).
