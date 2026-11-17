@@ -1,4 +1,4 @@
-"""The six figures used in the README and the write-up -> figures/fig1..fig6 (.png, .pdf). Free.
+"""The eight figures used in the README and the write-up -> figures/fig1..fig8 (.png, .pdf). Free.
 
 Reads the summary tables written by scripts/analysis and scripts/figures:
 results/confirm_tests.tsv, results/raw_summary.tsv, results/dna_confirm_tests.tsv,
@@ -120,6 +120,93 @@ header(fig, ax, "Claude Opus 5.5 matches ProtGPT3-10B, the largest open protein 
        "Same 668 proteins and same input for every model: the residues before the cut. Points: mean over families,\n"
        "bars: 95% bootstrap CI. ESM-2 shown the residues on both sides of the cut reaches +34.6 (Appendix C).")
 save(fig, "fig6_protein_lm")
+
+# Fig 7 and 8: every position of the 10 residues asked for -------------------------------------
+from bioseq_probe.probe import parse  # noqa: E402
+
+CHAT = ["claude-opus-5-5", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-opus-4-5-20251101",
+        "gpt-6-astra", "gpt-5.5", "gemini-4-carbon"]
+RAW = {"gemini-2.5-pro": "Gemini 2.5 Pro", "deepseek-v4p1-flash": "DeepSeek V4.1 Flash", "qwen3p8-2p4t-a95b": "Qwen 3.8",
+       "kimi-k3p1-pro": "Kimi K3.1 Pro", "glm-5p3": "GLM-5.3", "minimax-m3": "MiniMax M3", "gpt-oss-120b": "gpt-oss-120b",
+       "nemotron-3-ultra-nvfp4": "Nemotron 3 Ultra"}
+LABEL.update(RAW)
+replies = []  # (model, pfam, condition, hits at positions 1..10)
+for model in CHAT + list(RAW):
+    for line in open(f"results/{'raw' if model in RAW else 'confirm'}/{model}.jsonl"):
+        d = json.loads(line)
+        if "error" in d or d.get("stop") == "refusal":
+            continue
+        pred = d.get("pred", "") if model in RAW and d.get("valid") else ("" if model in RAW else parse(d.get("text", "") or ""))
+        if pred:
+            replies.append((model, d["pfam"], d["condition"], [k < len(pred) and pred[k] == d["target"][k] for k in range(10)]))
+pos = pd.DataFrame([(m, f, c, k + 1, h[k]) for m, f, c, h in replies for k in range(10)], columns=["model", "pfam", "condition", "k", "hit"])
+fam = pos.groupby(["model", "k", "pfam", "condition"]).hit.mean().unstack().dropna()
+fam = ((fam.real - fam.shuffled) * 100).rename("gap").reset_index()
+rng7 = np.random.default_rng(2026)
+summ = []
+for (model, k), g in fam.groupby(["model", "k"]):
+    x = g.gap.to_numpy()
+    b = x[rng7.integers(0, len(x), (10_000, len(x)))].mean(1)
+    summ.append({"model": model, "position": k, "d": x.mean(), "lo": np.percentile(b, 2.5), "hi": np.percentile(b, 97.5)})
+summ = pd.DataFrame(summ)
+summ.to_csv("results/position_gaps.tsv", sep="\t", index=False, float_format="%.4f")
+runs = {(m, c): np.mean([[all(h[: k + 1]) for k in range(10)] for mm, _, cc, h in replies if mm == m and cc == c], axis=0) * 100
+        for m in CHAT + list(RAW) for c in ("real", "shuffled")}
+pd.DataFrame({f"{m}|{c}": v for (m, c), v in runs.items()}, index=range(1, 11)).rename_axis("k").to_csv(
+    "results/exact_runs.tsv", sep="\t", float_format="%.4f")
+ORDER = CHAT + list(RAW)
+
+
+def style(model):
+    hero = model == "claude-opus-5-5"
+    return dict(color=color(LABEL[model]), lw=1.8 if hero else (0.8 if model in RAW else 1.0), ms=3.2 if hero else 2.2,
+                mfc="white" if model in RAW else color(LABEL[model]), zorder=3 if hero else (1 if model in RAW else 2))
+
+
+def legend_handles(models):
+    hs = [Line2D([], [], marker="o", **{k: v for k, v in style(m).items() if k != "zorder"}, label=LABEL[m]) for m in models]
+    hs.append(Line2D([], [], marker="o", color=GREY, lw=0.8, ms=2.2, mfc="white", label="7 open-weight models"))
+    return hs
+
+
+fig, ax = plt.subplots(figsize=(4.6, 3.3))
+for model in ORDER[::-1]:
+    r = summ[summ.model == model].sort_values("position")
+    if model == "claude-opus-5-5":
+        ax.fill_between(r.position, r.lo, r.hi, color=ACCENT, alpha=0.15, lw=0)
+    ax.plot(r.position, r.d, "-o", **style(model))
+ax.axhline(0, color=MUTED, lw=0.6)
+ax.set_xticks(range(1, 11))
+ax.set_ylim(-6, 32)
+ax.set_xlabel("Position in the reply (1 = the next amino acid)")
+ax.set_ylabel("Real minus shuffled (points)")
+ax.grid(axis="y", color=GRID, lw=0.5)
+ax.grid(axis="x", visible=False)
+ax.legend(handles=legend_handles(CHAT + ["gemini-2.5-pro"]), loc="upper right", ncol=2, fontsize=5.6, handletextpad=0.3,
+          labelspacing=0.3, columnspacing=0.8)
+header(fig, ax, "Claude Opus 5.5 keeps most of its signal across all 10 residues it writes",
+       "668 little-studied proteins; each position scored on its own (earlier positions need not be right); mean over 167 families,\n"
+       "band: 95% bootstrap CI for Opus 5.5. Hollow points: raw continuation of the FASTA text (Gemini 2.5 Pro, open-weight models).")
+save(fig, "fig7_by_position")
+
+fig, ax = plt.subplots(figsize=(4.6, 3.3))
+for model in ORDER[::-1]:
+    ax.plot(range(1, 11), runs[(model, "real")], "-o", **style(model))
+ax.plot(range(1, 11), runs[("claude-opus-5-5", "shuffled")], "--o", color=ACCENT, lw=1.2, ms=2.8, mfc="white", zorder=3)
+hs = legend_handles(CHAT + ["gemini-2.5-pro"])
+hs.append(Line2D([], [], marker="o", ls="--", color=ACCENT, lw=1.2, ms=2.8, mfc="white", label="Claude Opus 5.5, shuffled proteins"))
+ax.legend(handles=hs, loc="upper right", ncol=2, fontsize=5.6, handletextpad=0.3, labelspacing=0.3, columnspacing=0.8)
+ax.set_xticks(range(1, 11))
+ax.set_ylim(-1.5, 38)
+ax.set_xlabel("Number of residues, starting from the next one")
+ax.set_ylabel("All of them right (%)")
+ax.grid(axis="y", color=GRID, lw=0.5)
+ax.grid(axis="x", visible=False)
+header(fig, ax, "Claude Opus 5.5 writes runs of correct residues; on shuffled proteins it cannot",
+       "668 little-studied proteins. Share of replies whose first k residues are all right. Opus 5.5 on real proteins:\n"
+       "3.0% for 5 in a row, 0.4% for all 10; on shuffled proteins, one run of 3 and none longer. Other models' shuffled runs look the same.\n"
+       "Hollow points: raw continuation of the FASTA text (Gemini 2.5 Pro, open-weight models).")
+save(fig, "fig8_runs")
 
 # Fig 2: DNA by region ------------------------------------------------------------------------
 t = pd.read_csv("results/dna_confirm_tests.tsv", sep="\t")
@@ -286,4 +373,4 @@ header(fig, ax, "Claude Opus 5.5 tracks family size like a protein language mode
        "band: 95% bootstrap CI for Opus 5.5. Dashed: Opus 5.5 on the 128 families with no Europe PMC hit.\n"
        "Purple diamonds: ProtGPT3-10B, a protein language model, given the same residues before the cut.")
 save(fig, "fig5_family_size")
-print("figures/fig1_protein, fig2_dna, fig3_known_vs_obscure, fig4_recall, fig5_family_size, fig6_protein_lm")
+print("figures/fig1_protein, fig2_dna, fig3_known_vs_obscure, fig4_recall, fig5_family_size, fig6_protein_lm, fig7_by_position, fig8_runs")
