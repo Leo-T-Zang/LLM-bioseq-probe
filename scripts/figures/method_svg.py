@@ -84,7 +84,7 @@ def figure(n, compact=False, step=30, r=12.5):
         mark = "good" if ok else "bad"
         out.append(bead(bx, y, ans, r, mark, color=mark, weight=700))
         out.append(text(bx + r + 1, y - r + 3, "✓" if ok else "✗", 12, mark, 700))
-        tail = REPLY[cond][1:] if not compact else REPLY[cond][1:3] + "…"  # the rest of the 10, not scored
+        tail = REPLY[cond][1:4 if not compact else 3] + "…"  # the start of the rest of the 10, not scored
         tx = bx + r + 12
         out.append(text(tx, y + 4.5, tail, 11.5, "muted", 400, font=MONO))
         px = tx + len(tail) * 7.0 + 14
